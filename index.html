@@ -3,599 +3,1091 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discipulado 360º - Autoavaliação - Plenitude IEC™</title>
+    <title>Discipulado 360º - Plenitude IEC™ | Autoavaliação</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         :root {
             --primary: #1e3a5f;
-            --primary-dark: #0f1f3a;
+            --primary-light: #2c5282;
             --secondary: #d4a574;
-            --bg: #f7f5f0;
-            --white: #ffffff;
-            --text: #1a202c;
+            --accent: #c9a961;
+            --bg-light: #f7f5f0;
+            --bg-dark: #0f1f3a;
+            --text-dark: #1a202c;
             --text-light: #4a5568;
-            --success: #10b981;
-            --error: #ef4444;
+            --white: #ffffff;
+            --success: #48bb78;
+            --error: #f56565;
+            --warning: #f59e0b;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-        body { background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
-        
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; min-height: 100vh; }
+
+        /* HEADER */
         header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white; padding: 2rem; text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%);
+            color: var(--white); padding: 1.5rem 2rem; box-shadow: var(--shadow);
+            position: sticky; top: 0; z-index: 100;
         }
-        header h1 { color: var(--secondary); margin-bottom: 0.5rem; }
-        header p { opacity: 0.9; }
-        
-        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-        
-        .progress-bar {
-            background: white; padding: 1rem; border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 2rem;
-            position: sticky; top: 1rem; z-index: 100;
+        .header-content {
+            max-width: 1200px; margin: 0 auto; display: flex;
+            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
         }
-        .progress-track {
-            background: var(--bg); height: 12px; border-radius: 50px; overflow: hidden;
+        .logo { font-size: 1.3rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; }
+        .produto-badge {
+            background: rgba(212, 165, 116, 0.2); color: var(--secondary);
+            padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; border: 1px solid var(--secondary);
         }
+
+        /* PROGRESS */
+        .progress-container {
+            background: var(--white); padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky; top: 80px; z-index: 99;
+        }
+        .progress-content { max-width: 1200px; margin: 0 auto; }
+        .progress-info {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .progress-label { color: var(--primary); font-weight: 600; }
+        .progress-percent { color: var(--secondary); font-weight: bold; font-size: 1.1rem; }
+        .progress-bar { height: 8px; background: var(--bg-light); border-radius: 50px; overflow: hidden; }
         .progress-fill {
-            background: linear-gradient(90deg, var(--secondary), #c9a961);
-            height: 100%; width: 0%; transition: width 0.5s; border-radius: 50px;
+            height: 100%; background: linear-gradient(90deg, var(--secondary), var(--accent));
+            width: 0%; transition: width 0.4s ease; border-radius: 50px;
         }
-        .progress-text {
-            display: flex; justify-content: space-between;
-            margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-light);
+        .steps-indicator { display: flex; gap: 0.4rem; margin-top: 1rem; flex-wrap: wrap; }
+        .step-dot {
+            width: 30px; height: 30px; border-radius: 50%; background: var(--bg-light);
+            color: var(--text-light); display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: bold; transition: all 0.3s; cursor: pointer;
+            border: 2px solid transparent;
         }
-        
-        .card {
-            background: white; padding: 2rem; border-radius: 16px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem;
+        .step-dot.completed { background: var(--success); color: var(--white); }
+        .step-dot.active {
+            background: var(--primary); color: var(--white);
+            border-color: var(--secondary); transform: scale(1.15);
         }
-        .card h2 {
-            color: var(--primary); margin-bottom: 1.5rem;
-            padding-bottom: 1rem; border-bottom: 3px solid var(--secondary);
+
+        /* MAIN */
+        main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .step-content {
+            background: var(--white); padding: 2.5rem; border-radius: 16px;
+            box-shadow: var(--shadow); display: none; animation: fadeIn 0.4s ease;
         }
-        
-        .form-group { margin-bottom: 1.25rem; }
+        .step-content.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--bg-light); }
+        .step-tag {
+            display: inline-block; background: var(--primary); color: var(--white);
+            padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.8rem;
+            margin-bottom: 1rem; font-weight: 500;
+        }
+        .step-title {
+            color: var(--primary); font-size: 2rem; margin-bottom: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+        }
+        .step-subtitle { color: var(--text-light); }
+
+        .verse-box {
+            background: var(--bg-light); border-left: 4px solid var(--secondary);
+            padding: 1.25rem; margin: 1.5rem 0; border-radius: 8px;
+            font-style: italic; color: var(--text-dark);
+        }
+        .verse-box cite {
+            display: block; margin-top: 0.5rem; color: var(--primary);
+            font-weight: bold; font-style: normal;
+        }
+
+        /* FORM */
+        .form-group { margin-bottom: 1.5rem; }
         .form-group label {
             display: block; margin-bottom: 0.5rem; color: var(--primary); font-weight: 600;
         }
-        .form-group input {
+        .form-group label .required { color: var(--error); }
+        .form-group input, .form-group select {
             width: 100%; padding: 0.85rem 1rem; border: 2px solid #e2e8f0;
-            border-radius: 8px; font-size: 1rem; transition: all 0.3s;
+            border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; font-family: inherit;
         }
-        .form-group input:focus {
-            outline: none; border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--secondary); }
+
+        /* PERGUNTAS */
+        .question-card {
+            background: var(--bg-light); padding: 1.5rem; border-radius: 12px;
+            margin-bottom: 1.25rem; border-left: 4px solid var(--secondary); transition: all 0.3s;
         }
-        
-        .competencia-box {
-            background: white; border-radius: 16px; padding: 2rem;
-            margin-bottom: 1.5rem; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            border-left: 6px solid;
+        .question-card.answered { border-left-color: var(--success); background: #f0fdf4; }
+        .question-number {
+            color: var(--secondary); font-weight: bold; font-size: 0.85rem;
+            margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;
         }
-        .competencia-header {
-            display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
-            padding-bottom: 1rem; border-bottom: 2px solid var(--bg);
+        .question-text {
+            color: var(--text-dark); font-size: 1.05rem; margin-bottom: 1.25rem;
+            font-weight: 500; line-height: 1.5;
         }
-        .competencia-icone { font-size: 2.5rem; }
-        .competencia-titulo h3 { color: var(--primary); }
-        .competencia-titulo p { color: var(--text-light); font-size: 0.85rem; }
-        
-        .pergunta {
-            background: var(--bg); padding: 1.25rem; border-radius: 12px;
-            margin-bottom: 1rem; transition: all 0.3s;
+
+        .scale-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+        .scale-option { position: relative; }
+        .scale-option input[type="radio"] { position: absolute; opacity: 0; cursor: pointer; }
+        .scale-option label {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 1rem 0.5rem; background: var(--white); border: 2px solid #e2e8f0;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center;
+            font-size: 0.85rem; min-height: 80px;
         }
-        .pergunta:hover { background: #f0ede5; }
-        .pergunta-texto {
-            color: var(--text); margin-bottom: 0.75rem; font-weight: 500;
+        .scale-option label .scale-number {
+            font-size: 1.5rem; font-weight: bold; color: var(--text-light); margin-bottom: 0.25rem;
         }
-        
-        .escala {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;
+        .scale-option label .scale-text { color: var(--text-light); font-size: 0.75rem; }
+        .scale-option input[type="radio"]:checked + label {
+            background: var(--primary); border-color: var(--secondary); color: var(--white);
         }
-        .escala input[type="radio"] { display: none; }
-        .escala label {
-            background: white; padding: 0.75rem; text-align: center;
-            border-radius: 8px; cursor: pointer; transition: all 0.3s;
-            border: 2px solid #e2e8f0; font-size: 0.85rem; font-weight: 600;
+        .scale-option input[type="radio"]:checked + label .scale-number,
+        .scale-option input[type="radio"]:checked + label .scale-text { color: var(--white); }
+        .scale-option label:hover { border-color: var(--secondary); transform: translateY(-2px); }
+
+        /* AVALIADORES */
+        .avaliadores-info {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 4px solid var(--warning);
+            padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;
         }
-        .escala label:hover { border-color: var(--secondary); transform: translateY(-2px); }
-        .escala input[type="radio"]:checked + label {
-            background: var(--primary); color: var(--secondary);
-            border-color: var(--secondary); transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(30, 58, 95, 0.3);
+        .avaliadores-info h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .avaliadores-info p { color: var(--text-dark); font-size: 0.95rem; }
+
+        .avaliador-card {
+            background: var(--bg-light); padding: 1.5rem; border-radius: 12px;
+            margin-bottom: 1rem; border: 2px solid #e2e8f0; transition: all 0.3s;
+            position: relative;
         }
-        
-        @media (max-width: 600px) {
-            .escala { grid-template-columns: repeat(5, 1fr); }
-            .escala label { font-size: 0.7rem; padding: 0.5rem 0.25rem; }
+        .avaliador-card.complete { border-color: var(--success); background: #f0fdf4; }
+        .avaliador-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;
         }
-        
-        .escala-legenda {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;
-            font-size: 0.7rem; color: var(--text-light); text-align: center;
-            margin-top: 0.5rem;
+        .avaliador-card-title { color: var(--primary); font-weight: 700; font-size: 1.1rem; }
+        .avaliador-card-badge {
+            background: var(--secondary); color: var(--bg-dark);
+            padding: 0.25rem 0.75rem; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 600;
         }
-        
+        .avaliador-form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+        }
+        .avaliador-form-grid .full { grid-column: 1 / -1; }
+        .btn-remover-avaliador {
+            background: transparent; color: var(--error); border: 1px solid var(--error);
+            padding: 0.4rem 0.8rem; border-radius: 50px; font-size: 0.8rem;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-remover-avaliador:hover { background: var(--error); color: var(--white); }
+        .btn-add-avaliador {
+            background: transparent; color: var(--primary); border: 2px dashed var(--primary);
+            padding: 1rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; width: 100%; transition: all 0.3s; margin-top: 1rem;
+        }
+        .btn-add-avaliador:hover {
+            background: var(--primary); color: var(--white); border-style: solid;
+        }
+        .contador-avaliadores {
+            text-align: center; padding: 1rem; background: var(--white);
+            border-radius: 12px; margin-bottom: 1rem; font-weight: 600;
+        }
+        .contador-avaliadores.ok { color: var(--success); }
+        .contador-avaliadores.faltam { color: var(--warning); }
+
+        /* NAVIGATION */
+        .navigation {
+            display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; flex-wrap: wrap;
+        }
         .btn {
-            padding: 1rem 2rem; border-radius: 50px; border: none;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.9rem 2rem; border-radius: 50px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
         }
-        .btn-primary {
-            background: var(--secondary); color: var(--primary-dark);
-        }
+        .btn-primary { background: var(--secondary); color: var(--bg-dark); }
         .btn-primary:hover {
-            background: #c9a961; transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(212, 165, 116, 0.4);
+            background: var(--accent); transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(212, 165, 116, 0.3);
         }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        .acoes { text-align: center; padding: 2rem 0; }
-        
-        /* SUCESSO */
-        .sucesso-box {
-            background: white; padding: 3rem 2rem; border-radius: 16px;
-            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        .btn-primary:disabled {
+            background: #cbd5e0; cursor: not-allowed; transform: none; box-shadow: none;
         }
-        .sucesso-box .icone { font-size: 5rem; margin-bottom: 1rem; }
-        .sucesso-box h2 { color: var(--primary); margin-bottom: 1rem; }
-        
-        .codigo-display {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white; padding: 2rem; border-radius: 12px; margin: 2rem 0;
-        }
-        .codigo-display .label { opacity: 0.9; margin-bottom: 0.5rem; }
-        .codigo-display .codigo {
-            font-size: 3rem; font-weight: bold; color: var(--secondary);
-            letter-spacing: 8px; margin: 1rem 0;
-        }
-        
-        .links-convite { text-align: left; margin: 2rem 0; }
-        .link-card {
-            background: var(--bg); padding: 1.5rem; border-radius: 12px;
-            margin-bottom: 1rem; border-left: 5px solid;
-        }
-        .link-card.par { border-left-color: #06b6d4; }
-        .link-card.liderado { border-left-color: #10b981; }
-        .link-card.supervisor { border-left-color: #f59e0b; }
-        .link-card h4 { color: var(--primary); margin-bottom: 0.5rem; }
-        .link-card p { color: var(--text-light); font-size: 0.85rem; margin-bottom: 1rem; }
-        
-        .link-input-group {
-            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;
-        }
-        .link-input {
-            flex: 1; min-width: 200px; padding: 0.75rem;
-            border: 2px solid #e2e8f0; border-radius: 8px;
-            font-size: 0.8rem; background: white;
-        }
-        .btn-mini {
-            padding: 0.5rem 1rem; border-radius: 8px; border: none;
-            cursor: pointer; font-weight: 600; font-size: 0.85rem;
-            transition: all 0.3s;
-        }
-        .btn-copiar { background: var(--primary); color: white; }
-        .btn-whatsapp { background: #25d366; color: white; }
-        .btn-email { background: var(--secondary); color: var(--primary-dark); }
-        .btn-mini:hover { transform: translateY(-2px); }
-        
-        /* TOAST */
-        .toast {
-            position: fixed; bottom: 2rem; right: 2rem;
-            background: var(--success); color: white; padding: 1rem 1.5rem;
-            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            opacity: 0; transform: translateY(20px); transition: all 0.3s;
-            z-index: 1000;
-        }
-        .toast.show { opacity: 1; transform: translateY(0); }
-        
+        .btn-secondary { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-secondary:hover { background: var(--primary); color: var(--white); }
+
         /* LOADING */
         .loading-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 31, 58, 0.9); display: none;
-            align-items: center; justify-content: center; z-index: 9999;
-            flex-direction: column; color: white;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 31, 58, 0.95); z-index: 9999;
+            justify-content: center; align-items: center; flex-direction: column; color: var(--white);
         }
         .loading-overlay.active { display: flex; }
         .spinner {
-            width: 60px; height: 60px; border: 5px solid rgba(212,165,116,0.3);
+            width: 60px; height: 60px; border: 5px solid rgba(212, 165, 116, 0.3);
             border-top-color: var(--secondary); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 1rem;
+            animation: spin 1s linear infinite; margin-bottom: 1.5rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        footer {
-            background: var(--primary-dark); color: white;
-            padding: 2rem; text-align: center; margin-top: 3rem;
+        .loading-text { font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .loading-subtext { opacity: 0.8; font-size: 0.95rem; }
+
+        /* SUCCESS / CÓDIGO + LINKS */
+        .codigo-box {
+            background: linear-gradient(135deg, var(--primary), var(--bg-dark));
+            color: var(--white); padding: 2rem; border-radius: 16px;
+            text-align: center; margin: 2rem 0;
         }
-        footer .marca { color: var(--secondary); font-weight: bold; }
+        .codigo-label { opacity: 0.8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
+        .codigo-valor {
+            font-size: 2.5rem; font-weight: bold; color: var(--secondary);
+            font-family: 'Courier New', monospace; letter-spacing: 4px;
+            padding: 1rem 0; user-select: all;
+        }
+        .codigo-aviso { font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem; }
+
+        .link-card {
+            background: var(--bg-light); padding: 1.25rem; border-radius: 12px;
+            margin-bottom: 1rem; border-left: 4px solid var(--secondary);
+        }
+        .link-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .link-card-title { color: var(--primary); font-weight: 700; }
+        .link-card-tipo {
+            background: var(--secondary); color: var(--bg-dark);
+            padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;
+        }
+        .link-url {
+            background: var(--white); padding: 0.75rem; border-radius: 8px;
+            word-break: break-all; font-family: monospace; font-size: 0.85rem;
+            margin-bottom: 0.75rem; color: var(--text-light); border: 1px solid #e2e8f0;
+        }
+        .link-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn-link {
+            padding: 0.5rem 1rem; border-radius: 50px; font-size: 0.85rem;
+            font-weight: 600; cursor: pointer; border: none; transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none;
+        }
+        .btn-copy { background: var(--primary); color: var(--white); }
+        .btn-copy:hover { background: var(--bg-dark); }
+        .btn-whatsapp { background: #25d366; color: var(--white); }
+        .btn-whatsapp:hover { background: #1da851; }
+        .btn-email { background: var(--secondary); color: var(--bg-dark); }
+        .btn-email:hover { background: var(--accent); }
+
+        /* FOOTER */
+        footer {
+            background: var(--bg-dark); color: var(--white); padding: 2rem;
+            text-align: center; margin-top: 3rem;
+        }
+        footer p { opacity: 0.8; margin-bottom: 0.5rem; }
+        footer .marca { color: var(--secondary); font-weight: bold; opacity: 1; }
+
+        /* TOAST */
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem; background: var(--primary);
+            color: var(--white); padding: 1rem 1.5rem; border-radius: 8px;
+            box-shadow: var(--shadow); z-index: 1000; opacity: 0;
+            transform: translateY(20px); transition: all 0.3s; max-width: 300px;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--error); }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .step-content { padding: 1.5rem; }
+            .step-title { font-size: 1.5rem; }
+            .scale-options { gap: 0.25rem; }
+            .scale-option label { padding: 0.5rem 0.25rem; min-height: 60px; font-size: 0.7rem; }
+            .scale-option label .scale-number { font-size: 1.1rem; }
+            .scale-option label .scale-text { display: none; }
+            .progress-container { top: 70px; padding: 1rem; }
+            .step-dot { width: 24px; height: 24px; font-size: 0.7rem; }
+            .avaliador-form-grid { grid-template-columns: 1fr; }
+            .codigo-valor { font-size: 1.8rem; letter-spacing: 2px; }
+        }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
     <header>
-        <h1>🎯 Discipulado 360º</h1>
-        <p>Plenitude IEC™ - Autoavaliação</p>
+        <div class="header-content">
+            <div class="logo">
+                <span>✝️</span>
+                <span>Plenitude IEC™</span>
+            </div>
+            <div class="produto-badge">Discipulado 360º - Autoavaliação</div>
+        </div>
     </header>
-    
-    <main class="container">
-        <div id="formulario">
+
+    <!-- PROGRESS -->
+    <div class="progress-container">
+        <div class="progress-content">
+            <div class="progress-info">
+                <span class="progress-label" id="progressLabel">Etapa 1 de 11 - Identificação</span>
+                <span class="progress-percent" id="progressPercent">0%</span>
+            </div>
             <div class="progress-bar">
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text">
-                    <span id="progressText">0 de 54 respondidas</span>
-                    <span id="progressPercent">0%</span>
-                </div>
+                <div class="progress-fill" id="progressFill"></div>
             </div>
-            
-            <!-- DADOS PESSOAIS -->
-            <div class="card">
-                <h2>👤 Seus Dados</h2>
-                <div class="form-group">
-                    <label for="nome">Nome Completo *</label>
-                    <input type="text" id="nome" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">E-mail *</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="cargo">Cargo/Função Ministerial *</label>
-                    <input type="text" id="cargo" placeholder="Ex: Pastor, Presbítero, Líder de Ministério">
-                </div>
-                <div class="form-group">
-                    <label for="igreja">Igreja *</label>
-                    <input type="text" id="igreja" placeholder="Ex: IEC Centro">
-                </div>
+            <div class="steps-indicator" id="stepsIndicator"></div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <main>
+        <!-- ETAPA 0: DADOS PESSOAIS -->
+        <div class="step-content active" data-step="0">
+            <div class="step-header">
+                <span class="step-tag">📋 Etapa 1 de 11</span>
+                <h2 class="step-title">👤 Identificação</h2>
+                <p class="step-subtitle">Vamos começar te conhecendo melhor.</p>
             </div>
-            
-            <!-- COMPETÊNCIAS -->
-            <div id="competenciasContainer"></div>
-            
-            <div class="acoes">
-                <button class="btn btn-primary" id="btnEnviar" onclick="enviarAvaliacao()">
-                    ✅ Enviar Avaliação
-                </button>
+
+            <div class="verse-box">
+                "Sonda-me, ó Deus, e conhece o meu coração; prova-me e conhece os meus pensamentos."
+                <cite>— Salmos 139:23</cite>
+            </div>
+
+            <div class="form-group">
+                <label>Nome Completo <span class="required">*</span></label>
+                <input type="text" id="nome" required placeholder="Digite seu nome completo">
+            </div>
+
+            <div class="form-group">
+                <label>E-mail <span class="required">*</span></label>
+                <input type="email" id="email" required placeholder="seu@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>Cargo / Função Ministerial <span class="required">*</span></label>
+                <input type="text" id="cargo" required placeholder="Ex: Pastor, Líder de Célula, Diácono...">
+            </div>
+
+            <div class="form-group">
+                <label>Igreja <span class="required">*</span></label>
+                <input type="text" id="igreja" required placeholder="Nome da sua igreja">
+            </div>
+
+            <div class="navigation">
+                <span></span>
+                <button type="button" class="btn btn-primary" onclick="proximaEtapa()">Iniciar Autoavaliação →</button>
             </div>
         </div>
-        
-        <!-- SUCESSO -->
-        <div id="sucesso" style="display: none;">
-            <div class="sucesso-box">
-                <div class="icone">🎉</div>
-                <h2>Autoavaliação Enviada com Sucesso!</h2>
-                <p>Agora compartilhe os links abaixo com seus avaliadores</p>
-                
-                <div class="codigo-display">
-                    <div class="label">Seu código único:</div>
-                    <div class="codigo" id="codigoExibido">------</div>
-                    <div style="font-size: 0.9rem; opacity: 0.9;">Guarde este código para acessar seus resultados</div>
-                </div>
-                
-                <div class="links-convite">
-                    <h3 style="color: var(--primary); margin-bottom: 1rem;">📨 Convide seus avaliadores:</h3>
-                    
-                    <div class="link-card par">
-                        <h4>🤝 Para PARES (colegas)</h4>
-                        <p>Envie para 2-3 colegas no mesmo nível ministerial</p>
-                        <div class="link-input-group">
-                            <input type="text" class="link-input" id="linkPar" readonly>
-                            <button class="btn-mini btn-copiar" onclick="copiar('linkPar')">📋 Copiar</button>
-                            <button class="btn-mini btn-whatsapp" onclick="whatsapp('Par')">💬 WhatsApp</button>
-                            <button class="btn-mini btn-email" onclick="emailLink('Par')">📧 E-mail</button>
-                        </div>
-                    </div>
-                    
-                    <div class="link-card liderado">
-                        <h4>👥 Para DISCIPULOS (Liderados, Filhos Espirituais)</h4>
-                        <p>Envie para 2-3 ou mais pessoas que você lidera</p>
-                        <div class="link-input-group">
-                            <input type="text" class="link-input" id="linkLiderado" readonly>
-                            <button class="btn-mini btn-copiar" onclick="copiar('linkLiderado')">📋 Copiar</button>
-                            <button class="btn-mini btn-whatsapp" onclick="whatsapp('Liderado')">💬 WhatsApp</button>
-                            <button class="btn-mini btn-email" onclick="emailLink('Liderado')">📧 E-mail</button>
-                        </div>
-                    </div>
-                    
-                    <div class="link-card supervisor">
-                        <h4>👔 Para DISCIPULADOR (Líder Espiritual, Pai Espiritual, Pastor)</h4>
-                        <p>Envie para seu discipulador (Pai espiritual) direto</p>
-                        <div class="link-input-group">
-                            <input type="text" class="link-input" id="linkSupervisor" readonly>
-                            <button class="btn-mini btn-copiar" onclick="copiar('linkSupervisor')">📋 Copiar</button>
-                            <button class="btn-mini btn-whatsapp" onclick="whatsapp('Supervisor')">💬 WhatsApp</button>
-                            <button class="btn-mini btn-email" onclick="emailLink('Supervisor')">📧 E-mail</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <p style="font-style: italic; color: var(--text-light); margin-top: 2rem;">
-                    "Como o ferro com ferro se afia, assim o homem afia o seu próximo."<br>
-                    <strong style="color: var(--secondary);">— Provérbios 27:17</strong>
+
+        <!-- ETAPAS DE PERGUNTAS - geradas dinamicamente -->
+        <div id="questoesContainer"></div>
+
+        <!-- ETAPA 9: AVALIADORES -->
+        <div class="step-content" data-step="9">
+            <div class="step-header">
+                <span class="step-tag">📋 Etapa 10 de 11</span>
+                <h2 class="step-title">👥 Seus Avaliadores</h2>
+                <p class="step-subtitle">Convide pessoas que te conhecem para te avaliar.</p>
+            </div>
+
+            <div class="avaliadores-info">
+                <h4>📌 Por que indicar avaliadores?</h4>
+                <p>A avaliação 360º só é completa quando temos múltiplas perspectivas. Indique <strong>no mínimo 3 pessoas</strong> de confiança que possam te avaliar com sinceridade.</p>
+            </div>
+
+            <div class="verse-box">
+                "Como o ferro com ferro se afia, assim o homem afia o seu próximo."
+                <cite>— Provérbios 27:17</cite>
+            </div>
+
+            <div class="contador-avaliadores" id="contadorAvaliadores">
+                ⏳ 0 de 3 avaliadores cadastrados (mínimo)
+            </div>
+
+            <div id="avaliadoresContainer"></div>
+
+            <button type="button" class="btn-add-avaliador" onclick="adicionarAvaliador()">
+                ➕ Adicionar Avaliador
+            </button>
+
+            <div class="navigation">
+                <button type="button" class="btn btn-secondary" onclick="etapaAnterior()">← Voltar</button>
+                <button type="button" class="btn btn-primary" onclick="proximaEtapa()">🚀 Finalizar e Gerar Links</button>
+            </div>
+        </div>
+
+        <!-- ETAPA 10: SUCESSO COM CÓDIGO E LINKS -->
+        <div class="step-content" data-step="10">
+            <div style="text-align: center; padding: 2rem 0 1rem;">
+                <div style="font-size: 5rem; margin-bottom: 1rem;">🎉</div>
+                <h2 style="color: var(--primary); font-size: 2rem; margin-bottom: 1rem;">Autoavaliação Concluída!</h2>
+                <p style="color: var(--text-light); font-size: 1.1rem;">
+                    Agora compartilhe os links abaixo com seus avaliadores.
                 </p>
+            </div>
+
+            <div class="codigo-box">
+                <div class="codigo-label">🔐 Seu Código Único</div>
+                <div class="codigo-valor" id="codigoGerado">PLN-XXXXXX</div>
+                <div class="codigo-aviso">📌 Guarde este código! Ele identifica suas avaliações.</div>
+            </div>
+
+            <div class="avaliadores-info">
+                <h4>📤 Como compartilhar os links:</h4>
+                <p>Cada avaliador recebeu um link <strong>único e personalizado</strong>. Envie via WhatsApp ou e-mail clicando nos botões.</p>
+            </div>
+
+            <div id="linksAvaliadoresContainer"></div>
+
+            <div class="verse-box">
+                "Tendo, pois, recebido o Reino inabalável, retenhamos a graça, pela qual sirvamos a Deus de modo agradável, com reverência e santo temor."
+                <cite>— Hebreus 12:28</cite>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <p style="color: var(--text-light); margin-bottom: 1rem;">Que Deus te abençoe nessa jornada de crescimento! 🙏</p>
+                <button type="button" class="btn btn-secondary" onclick="window.location.reload()">🔄 Nova Avaliação</button>
             </div>
         </div>
     </main>
-    
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Salvando sua avaliação...</div>
+        <div class="loading-subtext">Discipulado 360º - Plenitude IEC™</div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- FOOTER -->
     <footer>
         <p class="marca">Discipulado 360º - Plenitude IEC™</p>
-        <p style="opacity: 0.8; margin-top: 0.5rem;">Em busca da maturidade cristã</p>
+        <p>Formando líderes saudáveis para igrejas saudáveis</p>
+        <p style="font-size: 0.85rem; margin-top: 1rem;">© Plenitude IEC™ — Todos os direitos reservados</p>
     </footer>
-    
-    <div class="loading-overlay" id="loading">
-        <div class="spinner"></div>
-        <p>Enviando sua avaliação...</p>
-    </div>
-    
-    <div class="toast" id="toast">Mensagem</div>
-    
+
     <script>
-        // ⚠️ CONFIGURE AQUI A URL DO SEU APPS SCRIPT
+        // ════════════════════════════════════════════════════
+        // ⚠️ CONFIGURAÇÃO
+        // ════════════════════════════════════════════════════
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWVzeD-0iBlD8cK3WhXeWWzgyjdy4wcqucKNwtSewS75r8n97lpO9VEUY4l2WfJV7jXw/exec';
         
+        // 🔗 URL DO SEU avaliador.html (ajuste conforme seu GitHub Pages)
+        const URL_AVALIADOR = window.location.origin + window.location.pathname.replace('avaliado.html', 'avaliador.html').replace(/\/[^\/]*$/, '/avaliador.html');
+
         // ════════════════════════════════════════════════════
-        // COMPETÊNCIAS E PERGUNTAS (54 perguntas total)
+        // COMPETÊNCIAS (1ª pessoa - autoavaliação)
         // ════════════════════════════════════════════════════
         const COMPETENCIAS = [
             {
-                id: 'C1', nome: 'Vida Espiritual', icone: '🙏', pilar: 'Caráter', cor: '#6366f1',
+                id: 'C1', nome: 'Vida Espiritual', icone: '🙏', pilar: 'Caráter',
+                versiculo: '"Permaneçam em mim, e eu permanecerei em vocês." — João 15:4',
                 perguntas: [
-                    'Mantenho tempo diário consistente com Deus em oração e Palavra',
-                    'Pratico jejum como disciplina espiritual regular',
-                    'Tenho um plano de leitura bíblica que sigo fielmente',
-                    'Cultivo intimidade com Deus através de adoração pessoal',
-                    'Pratico discernimento espiritual nas decisões importantes',
-                    'Vivo uma vida de dependência genuína do Espírito Santo'
+                    'Mantenho tempo diário e consistente de leitura bíblica e oração.',
+                    'Minha vida devocional impacta visivelmente meu caráter e decisões.',
+                    'Pratico jejum e disciplinas espirituais com regularidade.',
+                    'Dependo conscientemente do Espírito Santo nas decisões ministeriais.',
+                    'Tenho intimidade real com Deus, não apenas conhecimento sobre Ele.',
+                    'Outros percebem em mim os frutos do Espírito (Gl 5:22-23).'
                 ]
             },
             {
-                id: 'C2', nome: 'Inteligência Emocional', icone: '💚', pilar: 'Caráter', cor: '#10b981',
+                id: 'C2', nome: 'Inteligência Emocional Cristã', icone: '💚', pilar: 'Caráter',
+                versiculo: '"O homem prudente vê o perigo e busca refúgio." — Provérbios 22:3',
                 perguntas: [
-                    'Reconheço minhas emoções no momento em que surgem',
-                    'Lido bem com críticas e feedback negativo',
-                    'Mantenho equilíbrio emocional em situações de pressão',
-                    'Pratico empatia genuína com pessoas diferentes de mim',
-                    'Sou capaz de pedir perdão quando erro',
-                    'Tenho consciência clara dos meus gatilhos emocionais',
-                    'Pratico autocontrole em momentos de raiva ou frustração',
-                    'Cultivo relacionamentos saudáveis e duradouros',
-                    'Sei estabelecer limites saudáveis na vida e no ministério',
-                    'Lido bem com decepções e expectativas frustradas',
-                    'Demonstro vulnerabilidade apropriada com pessoas próximas',
-                    'Pratico o sabbath e descanso intencional regularmente'
+                    'Reconheço minhas emoções antes que elas me dominem.',
+                    'Lido com a raiva de forma bíblica (Ef 4:26), sem pecar.',
+                    'Sou capaz de pedir perdão genuíno quando erro.',
+                    'Recebo críticas sem me desestabilizar emocionalmente.',
+                    'Tenho domínio próprio diante de pressão e conflitos.',
+                    'Não uso o ministério para suprir carências emocionais.',
+                    'Mantenho equilíbrio entre ministério, família e descanso.',
+                    'Sou consciente dos meus gatilhos emocionais e padrões reativos.',
+                    'Vivo com transparência — não escondo lutas dos meus íntimos.',
+                    'Demonstro empatia genuína com sofrimentos alheios.',
+                    'Lido com decepções sem amargura ou ressentimento prolongado.',
+                    'Busco ajuda (mentor, terapeuta, conselheiro) quando necessário.'
                 ]
             },
             {
-                id: 'C3', nome: 'Pregação e Ensino', icone: '📖', pilar: 'Competência', cor: '#f59e0b',
+                id: 'C3', nome: 'Pregação e Ensino', icone: '📖', pilar: 'Competência',
+                versiculo: '"Maneja bem a palavra da verdade." — 2 Timóteo 2:15',
                 perguntas: [
-                    'Preparo minhas pregações com tempo e profundidade adequados',
-                    'Aplico princípios sólidos de hermenêutica e exegese',
-                    'Comunico a Palavra de forma clara e contextualizada',
-                    'Conecto a teologia com a vida prática dos ouvintes',
-                    'Busco constantemente melhorar como comunicador',
-                    'Ensino com convicção, autoridade e humildade'
+                    'Preparo minhas pregações com tempo adequado de estudo.',
+                    'Faço exegese séria do texto antes de pregar.',
+                    'Estruturo sermões com clareza (texto, contexto, aplicação).',
+                    'Pessoas relatam transformação através das minhas pregações.',
+                    'Estudo continuamente para crescer como pregador/professor.',
+                    'Sou fiel ao texto bíblico, sem usar como pretexto para minhas ideias.'
                 ]
             },
             {
-                id: 'C4', nome: 'Cuidado Pastoral', icone: '🤲', pilar: 'Competência', cor: '#ec4899',
+                id: 'C4', nome: 'Cuidado e Acolhimento', icone: '🤲', pilar: 'Competência',
+                versiculo: '"Conhece bem o estado das tuas ovelhas." — Provérbios 27:23',
                 perguntas: [
-                    'Conheço pessoalmente as ovelhas sob meus cuidados',
-                    'Estou disponível para crises e necessidades urgentes',
-                    'Pratico aconselhamento bíblico com sabedoria',
-                    'Visito enfermos, enlutados e pessoas em sofrimento',
-                    'Acompanho processos de restauração e cura',
-                    'Demonstro compaixão genuína pelas pessoas'
+                    'Conheço pelo nome a maioria das pessoas que pastoreio.',
+                    'Faço visitas pastorais com regularidade (não apenas em crises).',
+                    'Sou acessível para pessoas com problemas e dúvidas.',
+                    'Tenho habilidade básica em aconselhamento bíblico.',
+                    'Antecipo necessidades das ovelhas antes que sejam comunicadas.',
+                    'Pratico o cuidado pastoral de forma sustentável (sem me esgotar).'
                 ]
             },
             {
-                id: 'C5', nome: 'Liderança Servidora', icone: '👑', pilar: 'Competência', cor: '#8b5cf6',
+                id: 'C5', nome: 'Liderança Servidora', icone: '👑', pilar: 'Competência',
+                versiculo: '"O maior entre vocês será aquele que serve." — Mateus 23:11',
                 perguntas: [
-                    'Lidero pelo exemplo, não apenas pela posição',
-                    'Delego responsabilidades e empodero outros líderes',
-                    'Tomo decisões com sabedoria, oração e conselho',
-                    'Pratico submissão e prestação de contas à liderança',
-                    'Cultivo cultura de serviço, não de poder',
-                    'Influencio pessoas de forma saudável e cristocêntrica'
+                    'Lidero pelo exemplo, não apenas por autoridade.',
+                    'Delego tarefas e confio em minha equipe.',
+                    'Comunico visão clara e direção para os liderados.',
+                    'Dou e recebo feedback de forma saudável.',
+                    'Equilibro foco em tarefa com cuidado pelas pessoas.',
+                    'Submeto-me a autoridades espirituais sobre mim.'
                 ]
             },
             {
-                id: 'C6', nome: 'Discipulado', icone: '🌱', pilar: 'Competência', cor: '#14b8a6',
+                id: 'C6', nome: 'Discipulado e Multiplicação', icone: '🌱', pilar: 'Competência',
+                versiculo: '"Confia a homens fiéis... que sejam capazes de instruir outros." — 2 Timóteo 2:2',
                 perguntas: [
-                    'Discipulo intencionalmente pelo menos 2-3 pessoas',
-                    'Tenho um plano estruturado de formação de discípulos',
-                    'Compartilho vida (não só conteúdo) com meus discípulos',
-                    'Treino discípulos para que multipliquem outros',
-                    'Acompanho o crescimento espiritual dos meus discípulos',
-                    'Vivo o que ensino, sendo modelo a ser imitado'
+                    'Discipulo intencionalmente pelo menos 1-3 pessoas.',
+                    'Tenho um plano estruturado para meus discipulados.',
+                    'Compartilho vida com meus discípulos (não só conteúdo).',
+                    'Meus discípulos estão sendo formados para discipular outros.',
+                    'Acompanho indicadores reais de crescimento dos discípulos.',
+                    'Já vi gerações espirituais sendo formadas (2ª, 3ª geração).'
                 ]
             },
             {
-                id: 'C7', nome: 'Comunhão e Equipe', icone: '🤝', pilar: 'Comunhão', cor: '#f97316',
+                id: 'C7', nome: 'Comunhão e Trabalho em Equipe', icone: '🤝', pilar: 'Comunhão',
+                versiculo: '"Como é bom e agradável quando os irmãos vivem em união." — Salmos 133:1',
                 perguntas: [
-                    'Cultivo relacionamentos saudáveis com colegas de ministério',
-                    'Pratico reconciliação rápida em conflitos',
-                    'Construo cultura de equipe colaborativa',
-                    'Tenho um grupo de transparência e accountability',
-                    'Celebro vitórias dos outros sem inveja ou competição',
-                    'Contribuo para a unidade do corpo de Cristo'
+                    'Tenho relações próximas e saudáveis com colegas de ministério.',
+                    'Sei trabalhar em equipe, dividindo decisões e crédito.',
+                    'Lido com conflitos de forma direta e construtiva.',
+                    'Pratico reconciliação rápida (Mt 5:23-24).',
+                    'Sou transparente com pessoas de confiança sobre minhas lutas.',
+                    'Construo cultura de equipe saudável onde estou.'
                 ]
             },
             {
-                id: 'C8', nome: 'Missão de Reino', icone: '🌍', pilar: 'Comunhão', cor: '#06b6d4',
+                id: 'C8', nome: 'Missão e Visão de Reino', icone: '🌍', pilar: 'Comunhão',
+                versiculo: '"Ide por todo o mundo e pregai o evangelho." — Marcos 16:15',
                 perguntas: [
-                    'Compartilho o evangelho regularmente com não-cristãos',
-                    'Tenho relacionamentos intencionais com pessoas fora da igreja',
-                    'Apoio missões locais e transculturais',
-                    'Lidero a igreja em projetos de impacto social',
-                    'Treino a igreja em evangelismo prático',
-                    'Vivo com visão clara de Reino, não apenas de igreja local'
+                    'Tenho paixão genuína por pessoas que não conhecem Cristo.',
+                    'Evangelizo regularmente fora dos cultos.',
+                    'Mobilizo outros cristãos para a missão.',
+                    'Penso a igreja como instrumento de transformação social.',
+                    'Apoio missões transculturais (oração, oferta, envio).',
+                    'Tenho visão de Reino que vai além da minha igreja local.'
                 ]
             }
         ];
-        
+
         const ESCALA = [
-            { v: 1, l: 'Discordo Totalmente' },
-            { v: 2, l: 'Discordo' },
-            { v: 3, l: 'Neutro' },
-            { v: 4, l: 'Concordo' },
-            { v: 5, l: 'Concordo Totalmente' }
+            { valor: 1, texto: 'Discordo Totalmente' },
+            { valor: 2, texto: 'Discordo' },
+            { valor: 3, texto: 'Neutro' },
+            { valor: 4, texto: 'Concordo' },
+            { valor: 5, texto: 'Concordo Totalmente' }
         ];
-        
+
+        const TIPOS_AVALIADOR = [
+            { valor: 'Par', icone: '🤝', descricao: 'Colega ou amigo próximo' },
+            { valor: 'Liderado', icone: '👥', descricao: 'Pessoa que você lidera' },
+            { valor: 'Supervisor', icone: '👔', descricao: 'Líder ou superior' },
+            { valor: 'Familiar', icone: '👨‍👩‍👧', descricao: 'Cônjuge ou família próxima' }
+        ];
+
         // ════════════════════════════════════════════════════
-        // GERAR FORMULÁRIO
+        // ESTADO
         // ════════════════════════════════════════════════════
-        function gerarFormulario() {
-            const container = document.getElementById('competenciasContainer');
-            container.innerHTML = COMPETENCIAS.map(comp => `
-                <div class="competencia-box" style="border-left-color: ${comp.cor};">
-                    <div class="competencia-header">
-                        <div class="competencia-icone">${comp.icone}</div>
-                        <div class="competencia-titulo">
-                            <h3>${comp.nome}</h3>
-                            <p>Pilar: ${comp.pilar} · ${comp.perguntas.length} perguntas</p>
-                        </div>
-                    </div>
-                    ${comp.perguntas.map((p, i) => `
-                        <div class="pergunta">
-                            <div class="pergunta-texto">${i + 1}. ${p}</div>
-                            <div class="escala">
-                                ${ESCALA.map(e => `
-                                    <input type="radio" name="${comp.id}_Q${i+1}" value="${e.v}" id="${comp.id}_Q${i+1}_${e.v}" onchange="atualizarProgresso()">
-                                    <label for="${comp.id}_Q${i+1}_${e.v}">${e.v}</label>
-                                `).join('')}
-                            </div>
-                            <div class="escala-legenda">
-                                ${ESCALA.map(e => `<span>${e.l}</span>`).join('')}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('');
+        let etapaAtual = 0;
+        const totalEtapas = COMPETENCIAS.length + 3; // dados + 8 comp + avaliadores + sucesso
+        let avaliadoresCount = 0;
+        let codigoGerado = '';
+
+        // ════════════════════════════════════════════════════
+        // GERAR CÓDIGO ÚNICO
+        // ════════════════════════════════════════════════════
+        function gerarCodigo() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let codigo = 'PLN-';
+            for (let i = 0; i < 6; i++) {
+                codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return codigo;
         }
-        
+
+        // ════════════════════════════════════════════════════
+        // GERAR ETAPAS DE PERGUNTAS
+        // ════════════════════════════════════════════════════
+        function gerarEtapasPerguntas() {
+            const container = document.getElementById('questoesContainer');
+            
+            COMPETENCIAS.forEach((comp, index) => {
+                const stepNumber = index + 1;
+                const div = document.createElement('div');
+                div.className = 'step-content';
+                div.dataset.step = stepNumber;
+                
+                let perguntasHTML = '';
+                comp.perguntas.forEach((pergunta, idx) => {
+                    const qId = `${comp.id}_Q${idx + 1}`;
+                    let opcoesHTML = '';
+                    ESCALA.forEach(opt => {
+                        opcoesHTML += `
+                            <div class="scale-option">
+                                <input type="radio" name="${qId}" id="${qId}_${opt.valor}" value="${opt.valor}">
+                                <label for="${qId}_${opt.valor}">
+                                    <span class="scale-number">${opt.valor}</span>
+                                    <span class="scale-text">${opt.texto}</span>
+                                </label>
+                            </div>
+                        `;
+                    });
+                    
+                    perguntasHTML += `
+                        <div class="question-card" data-question="${qId}">
+                            <div class="question-number">Pergunta ${idx + 1} de ${comp.perguntas.length}</div>
+                            <div class="question-text">${pergunta}</div>
+                            <div class="scale-options">${opcoesHTML}</div>
+                        </div>
+                    `;
+                });
+                
+                div.innerHTML = `
+                    <div class="step-header">
+                        <span class="step-tag">📋 Etapa ${stepNumber + 1} de ${totalEtapas}</span>
+                        <h2 class="step-title">${comp.icone} ${comp.nome}</h2>
+                        <p class="step-subtitle">Pilar: <strong>${comp.pilar}</strong> · ${comp.perguntas.length} perguntas</p>
+                    </div>
+                    <div class="verse-box">${comp.versiculo}</div>
+                    ${perguntasHTML}
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="etapaAnterior()">← Voltar</button>
+                        <button type="button" class="btn btn-primary" onclick="proximaEtapa()">Próxima →</button>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+            
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const card = this.closest('.question-card');
+                    if (card) card.classList.add('answered');
+                    salvarLocalStorage();
+                    atualizarProgresso();
+                });
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // INDICADOR DE ETAPAS
+        // ════════════════════════════════════════════════════
+        function gerarIndicadorEtapas() {
+            const container = document.getElementById('stepsIndicator');
+            const labels = ['👤', ...COMPETENCIAS.map(c => c.icone), '👥', '✅'];
+            
+            labels.forEach((label, idx) => {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot';
+                dot.textContent = label;
+                dot.dataset.step = idx;
+                dot.addEventListener('click', () => {
+                    if (idx <= etapaAtual) irParaEtapa(idx);
+                });
+                container.appendChild(dot);
+            });
+            
+            atualizarIndicador();
+        }
+
+        function atualizarIndicador() {
+            document.querySelectorAll('.step-dot').forEach((dot, idx) => {
+                dot.classList.remove('active', 'completed');
+                if (idx === etapaAtual) dot.classList.add('active');
+                else if (idx < etapaAtual) dot.classList.add('completed');
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // GERENCIAR AVALIADORES
+        // ════════════════════════════════════════════════════
+        function adicionarAvaliador() {
+            avaliadoresCount++;
+            const container = document.getElementById('avaliadoresContainer');
+            const div = document.createElement('div');
+            div.className = 'avaliador-card';
+            div.dataset.id = avaliadoresCount;
+            
+            let tiposOptions = TIPOS_AVALIADOR.map(t => 
+                `<option value="${t.valor}">${t.icone} ${t.valor} - ${t.descricao}</option>`
+            ).join('');
+            
+            div.innerHTML = `
+                <div class="avaliador-card-header">
+                    <span class="avaliador-card-title">👤 Avaliador ${avaliadoresCount}</span>
+                    ${avaliadoresCount > 3 ? '<button class="btn-remover-avaliador" onclick="removerAvaliador(' + avaliadoresCount + ')">🗑️ Remover</button>' : '<span class="avaliador-card-badge">Obrigatório</span>'}
+                </div>
+                <div class="avaliador-form-grid">
+                    <div class="form-group full">
+                        <label>Nome do Avaliador <span class="required">*</span></label>
+                        <input type="text" class="aval-nome" placeholder="Nome completo" oninput="validarAvaliador(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail <span class="required">*</span></label>
+                        <input type="email" class="aval-email" placeholder="email@exemplo.com" oninput="validarAvaliador(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Relação <span class="required">*</span></label>
+                        <select class="aval-tipo" onchange="validarAvaliador(this)">
+                            <option value="">Selecione...</option>
+                            ${tiposOptions}
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(div);
+            atualizarContadorAvaliadores();
+            salvarLocalStorage();
+        }
+
+        function removerAvaliador(id) {
+            const card = document.querySelector(`.avaliador-card[data-id="${id}"]`);
+            if (card) card.remove();
+            atualizarContadorAvaliadores();
+            salvarLocalStorage();
+        }
+
+        function validarAvaliador(input) {
+            const card = input.closest('.avaliador-card');
+            const nome = card.querySelector('.aval-nome').value.trim();
+            const email = card.querySelector('.aval-email').value.trim();
+            const tipo = card.querySelector('.aval-tipo').value;
+            
+            if (nome && email.includes('@') && tipo) {
+                card.classList.add('complete');
+            } else {
+                card.classList.remove('complete');
+            }
+            
+            atualizarContadorAvaliadores();
+            salvarLocalStorage();
+        }
+
+        function atualizarContadorAvaliadores() {
+            const completos = document.querySelectorAll('.avaliador-card.complete').length;
+            const total = document.querySelectorAll('.avaliador-card').length;
+            const contador = document.getElementById('contadorAvaliadores');
+            
+            if (completos >= 3) {
+                contador.className = 'contador-avaliadores ok';
+                contador.textContent = `✅ ${completos} avaliadores completos (mínimo atingido!)`;
+            } else {
+                contador.className = 'contador-avaliadores faltam';
+                contador.textContent = `⏳ ${completos} de 3 avaliadores completos (faltam ${3 - completos})`;
+            }
+        }
+
+        function coletarAvaliadores() {
+            const lista = [];
+            document.querySelectorAll('.avaliador-card').forEach(card => {
+                const nome = card.querySelector('.aval-nome').value.trim();
+                const email = card.querySelector('.aval-email').value.trim();
+                const tipo = card.querySelector('.aval-tipo').value;
+                if (nome && email && tipo) {
+                    lista.push({ nome, email, tipo });
+                }
+            });
+            return lista;
+        }
+
+        // ════════════════════════════════════════════════════
+        // NAVEGAÇÃO
+        // ════════════════════════════════════════════════════
+        function proximaEtapa() {
+            if (!validarEtapa(etapaAtual)) return;
+            
+            if (etapaAtual === COMPETENCIAS.length + 1) {
+                // Última etapa (avaliadores) - enviar
+                enviarAvaliacao();
+                return;
+            }
+            
+            irParaEtapa(etapaAtual + 1);
+        }
+
+        function etapaAnterior() {
+            if (etapaAtual > 0) irParaEtapa(etapaAtual - 1);
+        }
+
+        function irParaEtapa(novaEtapa) {
+            if (novaEtapa < 0 || novaEtapa >= totalEtapas) return;
+            
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            const target = document.querySelector(`.step-content[data-step="${novaEtapa}"]`);
+            if (target) target.classList.add('active');
+            
+            etapaAtual = novaEtapa;
+            atualizarProgresso();
+            atualizarIndicador();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ════════════════════════════════════════════════════
+        // VALIDAÇÃO
+        // ════════════════════════════════════════════════════
+        function validarEtapa(etapa) {
+            // Etapa 0: dados pessoais
+            if (etapa === 0) {
+                const campos = ['nome', 'email', 'cargo', 'igreja'];
+                for (const id of campos) {
+                    const el = document.getElementById(id);
+                    if (!el.value.trim()) {
+                        mostrarToast(`Preencha: ${el.previousElementSibling.textContent.replace('*', '').trim()}`, 'error');
+                        el.focus();
+                        return false;
+                    }
+                }
+                const email = document.getElementById('email').value;
+                if (!email.includes('@') || !email.includes('.')) {
+                    mostrarToast('E-mail inválido', 'error');
+                    return false;
+                }
+                return true;
+            }
+            
+            // Etapas 1-8: perguntas
+            if (etapa >= 1 && etapa <= COMPETENCIAS.length) {
+                const comp = COMPETENCIAS[etapa - 1];
+                for (let i = 1; i <= comp.perguntas.length; i++) {
+                    const qId = `${comp.id}_Q${i}`;
+                    const checked = document.querySelector(`input[name="${qId}"]:checked`);
+                    if (!checked) {
+                        mostrarToast(`Responda a pergunta ${i} de ${comp.nome}`, 'error');
+                        const card = document.querySelector(`[data-question="${qId}"]`);
+                        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            // Etapa 9: avaliadores
+            if (etapa === COMPETENCIAS.length + 1) {
+                const avaliadores = coletarAvaliadores();
+                if (avaliadores.length < 3) {
+                    mostrarToast(`❌ Cadastre no mínimo 3 avaliadores (você tem ${avaliadores.length})`, 'error');
+                    return false;
+                }
+                return true;
+            }
+            
+            return true;
+        }
+
         // ════════════════════════════════════════════════════
         // PROGRESSO
         // ════════════════════════════════════════════════════
         function atualizarProgresso() {
-            const total = 54;
+            const totalPerguntas = COMPETENCIAS.reduce((sum, c) => sum + c.perguntas.length, 0);
             const respondidas = document.querySelectorAll('input[type="radio"]:checked').length;
-            const percent = Math.round((respondidas / total) * 100);
+            const percent = Math.round((respondidas / totalPerguntas) * 100);
+            
             document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressText').textContent = `${respondidas} de ${total} respondidas`;
             document.getElementById('progressPercent').textContent = percent + '%';
-        }
-        
-        // ════════════════════════════════════════════════════
-        // ENVIAR
-        // ════════════════════════════════════════════════════
-        async function enviarAvaliacao() {
-            const nome = document.getElementById('nome').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const cargo = document.getElementById('cargo').value.trim();
-            const igreja = document.getElementById('igreja').value.trim();
             
-            if (!nome || !email || !cargo || !igreja) {
-                mostrarToast('❌ Preencha todos os dados pessoais', 'error');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return;
+            let label = '';
+            if (etapaAtual === 0) label = `Etapa 1 de ${totalEtapas} - Identificação`;
+            else if (etapaAtual === totalEtapas - 1) label = 'Concluído!';
+            else if (etapaAtual === COMPETENCIAS.length + 1) label = `Etapa ${etapaAtual + 1} de ${totalEtapas} - Avaliadores`;
+            else {
+                const comp = COMPETENCIAS[etapaAtual - 1];
+                label = `Etapa ${etapaAtual + 1} de ${totalEtapas} - ${comp.nome}`;
             }
+            document.getElementById('progressLabel').textContent = label;
+        }
+
+        // ════════════════════════════════════════════════════
+        // LOCALSTORAGE
+        // ════════════════════════════════════════════════════
+        function salvarLocalStorage() {
+            const dados = coletarDados();
+            localStorage.setItem('discipulado360_avaliado', JSON.stringify(dados));
+        }
+
+        function carregarLocalStorage() {
+            const salvo = localStorage.getItem('discipulado360_avaliado');
+            if (!salvo) return;
             
+            try {
+                const dados = JSON.parse(salvo);
+                if (dados.nome) document.getElementById('nome').value = dados.nome;
+                if (dados.email) document.getElementById('email').value = dados.email;
+                if (dados.cargo) document.getElementById('cargo').value = dados.cargo;
+                if (dados.igreja) document.getElementById('igreja').value = dados.igreja;
+                
+                if (dados.respostas) {
+                    Object.entries(dados.respostas).forEach(([key, val]) => {
+                        const radio = document.querySelector(`input[name="${key}"][value="${val}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                            const card = radio.closest('.question-card');
+                            if (card) card.classList.add('answered');
+                        }
+                    });
+                }
+                
+                mostrarToast('📥 Dados anteriores restaurados', 'success');
+            } catch (e) {
+                console.warn('Erro ao carregar:', e);
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // COLETAR DADOS
+        // ════════════════════════════════════════════════════
+        function coletarDados() {
             const respostas = {};
             document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
                 respostas[input.name] = parseInt(input.value);
             });
             
-            if (Object.keys(respostas).length < 54) {
-                mostrarToast(`❌ Faltam ${54 - Object.keys(respostas).length} perguntas`, 'error');
-                return;
-            }
-            
-            const dados = {
+            return {
                 acao: 'salvarAvaliado',
-                nome, email, cargo, igreja, respostas
+                codigo: codigoGerado,
+                nome: document.getElementById('nome').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                cargo: document.getElementById('cargo').value.trim(),
+                igreja: document.getElementById('igreja').value.trim(),
+                respostas: respostas,
+                avaliadores: coletarAvaliadores()
             };
-            
-            document.getElementById('loading').classList.add('active');
+        }
+
+        // ════════════════════════════════════════════════════
+        // ENVIAR AVALIAÇÃO E GERAR LINKS
+        // ════════════════════════════════════════════════════
+        async function enviarAvaliacao() {
+            codigoGerado = gerarCodigo();
+            const dados = coletarDados();
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.add('active');
             
             try {
-                const resp = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(dados)
                 });
                 
-                // Como é no-cors, geramos o código localmente para exibir
-                const codigo = gerarCodigoLocal();
+                localStorage.removeItem('discipulado360_avaliado');
+                loading.classList.remove('active');
                 
-                document.getElementById('loading').classList.remove('active');
-                mostrarSucesso(codigo, nome);
+                gerarTelaSucesso(dados);
+                irParaEtapa(totalEtapas - 1);
+                mostrarToast('✅ Autoavaliação salva com sucesso!', 'success');
                 
-            } catch (e) {
-                document.getElementById('loading').classList.remove('active');
+            } catch (erro) {
+                loading.classList.remove('active');
                 mostrarToast('❌ Erro ao enviar. Tente novamente.', 'error');
-                console.error(e);
+                console.error(erro);
             }
         }
-        
-        function gerarCodigoLocal() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let codigo = '';
-            for (let i = 0; i < 6; i++) codigo += chars.charAt(Math.floor(Math.random() * chars.length));
-            return codigo;
-        }
-        
+
         // ════════════════════════════════════════════════════
-        // SUCESSO + LINKS
+        // GERAR TELA DE SUCESSO COM LINKS
         // ════════════════════════════════════════════════════
-        function mostrarSucesso(codigo, nome) {
-            document.getElementById('formulario').style.display = 'none';
-            document.getElementById('sucesso').style.display = 'block';
-            document.getElementById('codigoExibido').textContent = codigo;
+        function gerarTelaSucesso(dados) {
+            document.getElementById('codigoGerado').textContent = codigoGerado;
+            const container = document.getElementById('linksAvaliadoresContainer');
+            container.innerHTML = '';
             
-            const urlBase = window.location.origin + window.location.pathname.replace('avaliado.html', 'avaliador.html');
-            const linkBase = `${urlBase}?codigo=${codigo}&nome=${encodeURIComponent(nome)}`;
+            const nomeEncoded = encodeURIComponent(dados.nome);
             
-            document.getElementById('linkPar').value = linkBase + '&tipo=Par';
-            document.getElementById('linkLiderado').value = linkBase + '&tipo=Liderado';
-            document.getElementById('linkSupervisor').value = linkBase + '&tipo=Supervisor';
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            dados.avaliadores.forEach((aval, idx) => {
+                const link = `${URL_AVALIADOR}?codigo=${codigoGerado}&nome=${nomeEncoded}&tipo=${aval.tipo}`;
+                const tipoIcon = TIPOS_AVALIADOR.find(t => t.valor === aval.tipo)?.icone || '👤';
+                
+                const mensagem = `Olá ${aval.nome}! 👋\n\nGostaria muito que você me avaliasse no programa *Discipulado 360º - Plenitude IEC™*.\n\nSua avaliação é confidencial e me ajudará a crescer ministerialmente. 🙏\n\n👉 Acesse o link único:\n${link}\n\nObrigado(a)! ✨`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+                const emailSubject = `Convite para Avaliação - Discipulado 360º`;
+                const emailUrl = `mailto:${aval.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(mensagem)}`;
+                
+                const card = document.createElement('div');
+                card.className = 'link-card';
+                card.innerHTML = `
+                    <div class="link-card-header">
+                        <span class="link-card-title">${tipoIcon} ${aval.nome}</span>
+                        <span class="link-card-tipo">${aval.tipo}</span>
+                    </div>
+                    <div class="link-url" id="link-${idx}">${link}</div>
+                    <div class="link-actions">
+                        <button class="btn-link btn-copy" onclick="copiarLink('link-${idx}')">📋 Copiar Link</button>
+                        <a href="${whatsappUrl}" target="_blank" class="btn-link btn-whatsapp">💬 WhatsApp</a>
+                        <a href="${emailUrl}" class="btn-link btn-email">📧 E-mail</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
-        
-        function copiar(id) {
-            const input = document.getElementById(id);
-            input.select();
-            navigator.clipboard.writeText(input.value);
-            mostrarToast('✅ Link copiado!');
+
+        // ════════════════════════════════════════════════════
+        // COPIAR LINK
+        // ════════════════════════════════════════════════════
+        function copiarLink(elementId) {
+            const texto = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(texto).then(() => {
+                mostrarToast('📋 Link copiado!', 'success');
+            }).catch(() => {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = texto;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                mostrarToast('📋 Link copiado!', 'success');
+            });
         }
-        
-        function whatsapp(tipo) {
-            const link = document.getElementById('link' + tipo).value;
-            const msg = `Olá! 🙏\n\nEstou fazendo uma avaliação 360º do meu ministério através do *Discipulado 360º - Plenitude IEC™*.\n\nGostaria muito da sua avaliação como meu(minha) ${tipo.toLowerCase()}. São 54 perguntas e leva ~15 min.\n\nAcesse: ${link}\n\nObrigado! 🎯`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-        
-        function emailLink(tipo) {
-            const link = document.getElementById('link' + tipo).value;
-            const subject = `Avaliação 360º - Discipulado 360º Plenitude IEC™`;
-            const body = `Olá!\n\nEstou fazendo uma avaliação 360º do meu ministério.\n\nGostaria da sua avaliação como meu(minha) ${tipo.toLowerCase()}.\n\nAcesse: ${link}\n\nObrigado! 🙏`;
-            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
-        
-        function mostrarToast(msg, tipo = 'success') {
+
+        // ════════════════════════════════════════════════════
+        // TOAST
+        // ════════════════════════════════════════════════════
+        function mostrarToast(mensagem, tipo = '') {
             const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.style.background = tipo === 'error' ? 'var(--error)' : 'var(--success)';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            toast.textContent = mensagem;
+            toast.className = 'toast show ' + tipo;
+            setTimeout(() => toast.classList.remove('show'), 3500);
         }
-        
+
         // ════════════════════════════════════════════════════
-        // INIT
+        // INICIALIZAÇÃO
         // ════════════════════════════════════════════════════
-        gerarFormulario();
+        document.addEventListener('DOMContentLoaded', () => {
+            gerarEtapasPerguntas();
+            gerarIndicadorEtapas();
+            
+            // Adicionar 3 avaliadores obrigatórios automaticamente
+            adicionarAvaliador();
+            adicionarAvaliador();
+            adicionarAvaliador();
+            
+            carregarLocalStorage();
+            atualizarProgresso();
+            
+            ['nome', 'email', 'cargo', 'igreja'].forEach(id => {
+                document.getElementById(id).addEventListener('input', salvarLocalStorage);
+            });
+        });
     </script>
 </body>
 </html>
