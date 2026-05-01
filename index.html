@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discipulado 360º - Plenitude IEC™ | Plano de Desenvolvimento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2c5282;
+            --secondary: #d4a574;
+            --accent: #c9a961;
+            --bg-light: #f7f5f0;
+            --bg-dark: #0f1f3a;
+            --text-dark: #1a202c;
+            --text-light: #4a5568;
+            --white: #ffffff;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            
+            --c1: #6366f1;
+            --c2: #10b981;
+            --c3: #f59e0b;
+            --c4: #ec4899;
+            --c5: #8b5cf6;
+            --c6: #14b8a6;
+            --c7: #f97316;
+            --c8: #06b6d4;
+        }
+
+        body {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .produto-badge {
+            background: rgba(212, 165, 116, 0.2);
+            color: var(--secondary);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            border: 1px solid var(--secondary);
+        }
+
+        /* HERO */
+        .hero-plano {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%);
+            color: var(--white);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-plano::before {
+            content: '🌱';
+            position: absolute;
+            font-size: 18rem;
+            opacity: 0.05;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .hero-plano h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-plano .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-plano .versiculo {
+            font-style: italic;
+            color: var(--secondary);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* MAIN */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* RESUMO USUÁRIO */
+        .resumo-usuario {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .resumo-usuario { grid-template-columns: 1fr; }
+        }
+
+        .resumo-info h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .resumo-info p {
+            color: var(--text-light);
+        }
+
+        .resumo-media {
+            text-align: center;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--bg-dark));
+            color: var(--white);
+            border-radius: 12px;
+        }
+
+        .resumo-media .numero {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--secondary);
+            line-height: 1;
+        }
+
+        .resumo-media .label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        /* SEÇÃO TÍTULO */
+        .secao-titulo {
+            text-align: center;
+            margin: 3rem 0 2rem;
+        }
+
+        .secao-titulo h2 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .secao-titulo p {
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* PRIORIDADES */
+        .prioridades-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 968px) {
+            .prioridades-grid { grid-template-columns: 1fr; }
+        }
+
+        .prioridade-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border-top: 5px solid;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .prioridade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .prioridade-card.urgente { border-top-color: var(--danger); }
+        .prioridade-card.media { border-top-color: var(--warning); }
+        .prioridade-card.baixa { border-top-color: var(--success); }
+
+        .prioridade-tag {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        .prioridade-card.urgente .prioridade-tag { background: var(--danger); }
+        .prioridade-card.media .prioridade-tag { background: var(--warning); }
+        .prioridade-card.baixa .prioridade-tag { background: var(--success); }
+
+        .prioridade-icone {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prioridade-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .prioridade-valor {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .prioridade-desc {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* PLANO POR COMPETÊNCIA */
+        .plano-competencia {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border-left: 6px solid;
+            transition: all 0.3s;
+        }
+
+        .plano-header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .plano-header { grid-template-columns: 1fr; gap: 0.5rem; }
+        }
+
+        .plano-icone {
+            font-size: 3rem;
+        }
+
+        .plano-info h3 {
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .plano-info .pilar {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .plano-pontuacao {
+            text-align: center;
+        }
+
+        .plano-pontuacao .numero {
+            font-size: 2.2rem;
+            font-weight: bold;
+        }
+
+        .plano-pontuacao .nivel {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .plano-conteudo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--bg-light);
+        }
+
+        .plano-bloco {
+            background: var(--bg-light);
+            padding: 1.25rem;
+            border-radius: 12px;
+        }
+
+        .plano-bloco h4 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .plano-bloco ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .plano-bloco ul li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .plano-bloco ul li:last-child { border-bottom: none; }
+
+        .plano-bloco ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .plano-bloco.versiculo {
+            background: linear-gradient(135deg, rgba(30, 58, 95, 0.05), rgba(212, 165, 116, 0.1));
+            border-left: 4px solid var(--secondary);
+            font-style: italic;
+        }
+
+        .plano-bloco.versiculo p {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .plano-bloco.versiculo cite {
+            display: block;
+            margin-top: 0.5rem;
+            color: var(--primary);
+            font-weight: bold;
+            font-style: normal;
+            font-size: 0.85rem;
+        }
+
+        /* CRONOGRAMA 90 DIAS */
+        .cronograma-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .cronograma-card h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .timeline { grid-template-columns: 1fr; }
+        }
+
+        .timeline-fase {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            position: relative;
+            border-top: 5px solid;
+        }
+
+        .timeline-fase.fase1 { border-top-color: var(--c1); }
+        .timeline-fase.fase2 { border-top-color: var(--c3); }
+        .timeline-fase.fase3 { border-top-color: var(--c8); }
+
+        .timeline-numero {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 3px solid var(--bg-light);
+        }
+
+        .timeline-fase h4 {
+            color: var(--primary);
+            margin: 1rem 0 0.5rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .timeline-periodo {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .timeline-fase ul {
+            list-style: none;
+        }
+
+        .timeline-fase ul li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline-fase ul li:last-child { border-bottom: none; }
+
+        .timeline-fase ul li::before {
+            content: '◆';
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+        }
+
+        /* COMPROMISSO */
+        .compromisso-card {
+            background: linear-gradient(135deg, var(--primary), var(--bg-dark));
+            color: var(--white);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .compromisso-card::before {
+            content: '✝';
+            position: absolute;
+            font-size: 15rem;
+            opacity: 0.05;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .compromisso-card h2 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .compromisso-card p {
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 2;
+        }
+
+        .checklist-compromisso {
+            max-width: 600px;
+            margin: 2rem auto 0;
+            text-align: left;
+            position: relative;
+            z-index: 2;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+
+        .checklist-item:hover {
+            background: rgba(212, 165, 116, 0.1);
+            transform: translateX(5px);
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--secondary);
+        }
+
+        .checklist-item label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        /* AÇÕES */
+        .acoes {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(212, 165, 116, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* SEM DADOS */
+        .sem-dados {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .sem-dados h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--bg-dark);
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        footer p {
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        footer .marca {
+            color: var(--secondary);
+            font-weight: bold;
+            opacity: 1;
+        }
+
+        /* PRINT */
+        @media print {
+            header, footer, .acoes { display: none; }
+            body { background: white; }
+            .plano-competencia, .cronograma-card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-plano h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <span>✝️</span>
+                <span>Plenitude IEC™</span>
+            </div>
+            <div class="produto-badge">Discipulado 360º - Plenitude IEC™</div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero-plano">
+        <h1>🌱 Seu Plano de Desenvolvimento</h1>
+        <p class="subtitle">Da glória em glória — um caminho prático e bíblico para crescimento espiritual e ministerial</p>
+        <p class="versiculo">"Esquecendo-me das coisas que para trás ficam, prossigo para o alvo." — Filipenses 3:14</p>
+    </section>
+
+    <main id="mainContent">
+        <!-- RESUMO USUÁRIO -->
+        <div class="resumo-usuario">
+            <div class="resumo-info">
+                <h2 id="userName">Carregando...</h2>
+                <p id="userDetails">Discipulado 360º - Plenitude IEC™</p>
+                <p style="margin-top: 0.5rem; color: var(--text-light); font-size: 0.9rem;" id="userData"></p>
+            </div>
+            <div class="resumo-media">
+                <div class="numero" id="mediaGeral">0.00</div>
+                <div class="label">Média Geral</div>
+            </div>
+        </div>
+
+        <!-- PRIORIDADES -->
+        <div class="secao-titulo">
+            <h2>🎯 Suas 3 Prioridades</h2>
+            <p>Áreas que mais precisam de atenção, ordenadas por urgência</p>
+        </div>
+        <div class="prioridades-grid" id="prioridadesGrid"></div>
+
+        <!-- PLANO DETALHADO -->
+        <div class="secao-titulo">
+            <h2>📚 Plano Detalhado por Competência</h2>
+            <p>Práticas específicas, recursos e versículos para cada área</p>
+        </div>
+        <div id="planosDetalhados"></div>
+
+        <!-- CRONOGRAMA 90 DIAS -->
+        <div class="cronograma-card">
+            <h3>📅 Cronograma de 90 Dias</h3>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 2rem;">
+                Um caminho progressivo para você implementar mudanças reais
+            </p>
+            <div class="timeline">
+                <div class="timeline-fase fase1">
+                    <div class="timeline-numero">1</div>
+                    <h4>🌱 Fundação</h4>
+                    <div class="timeline-periodo">Dias 1-30</div>
+                    <ul>
+                        <li>Estabeleça tempo devocional diário (mín. 30 min)</li>
+                        <li>Encontre um mentor/conselheiro espiritual</li>
+                        <li>Defina rotina semanal com sabbath</li>
+                        <li>Memorize 4 versículos-chave</li>
+                        <li>Inicie um diário de gratidão</li>
+                        <li>Identifique 1 competência prioritária</li>
+                    </ul>
+                </div>
+                <div class="timeline-fase fase2">
+                    <div class="timeline-numero">2</div>
+                    <h4>🌿 Crescimento</h4>
+                    <div class="timeline-periodo">Dias 31-60</div>
+                    <ul>
+                        <li>Aprofunde estudo na competência prioritária</li>
+                        <li>Leia 2 livros recomendados</li>
+                        <li>Pratique 1 nova disciplina espiritual</li>
+                        <li>Mentoria quinzenal (ou semanal)</li>
+                        <li>Aplique 1 mudança ministerial concreta</li>
+                        <li>Avalie progresso na metade do período</li>
+                    </ul>
+                </div>
+                <div class="timeline-fase fase3">
+                    <div class="timeline-numero">3</div>
+                    <h4>🌳 Frutificação</h4>
+                    <div class="timeline-periodo">Dias 61-90</div>
+                    <ul>
+                        <li>Multiplique o aprendizado discipulando outro</li>
+                        <li>Refaça a Avaliação 360º</li>
+                        <li>Compare resultados e celebre crescimento</li>
+                        <li>Defina próximo ciclo de 90 dias</li>
+                        <li>Compartilhe testemunho com sua liderança</li>
+                        <li>Estabeleça novos alvos de fé</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPROMISSO -->
+        <div class="compromisso-card">
+            <h2>✋ Compromisso de Crescimento</h2>
+            <p>"Não basta ouvir a Palavra. É preciso praticá-la." — Tiago 1:22</p>
+            <p>Marque os compromissos que você assume diante de Deus para os próximos 90 dias:</p>
+            
+            <div class="checklist-compromisso">
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp1">
+                    <label for="comp1">🙏 Manterei tempo diário com Deus (mín. 30 min)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp2">
+                    <label for="comp2">📖 Lerei a Bíblia inteira ou estudarei 1 livro a fundo</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp3">
+                    <label for="comp3">🤝 Buscarei mentoria espiritual regular</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp4">
+                    <label for="comp4">📚 Lerei pelo menos 2 livros sobre minhas áreas prioritárias</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp5">
+                    <label for="comp5">🌱 Discipularei pelo menos 1 pessoa</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp6">
+                    <label for="comp6">🔄 Refarei a Avaliação 360º em 90 dias</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="comp7">
+                    <label for="comp7">💚 Cuidarei do meu sabbath semanal e descanso</label>
+                </div>
+            </div>
+
+            <p style="margin-top: 2rem; font-style: italic; color: var(--secondary);">
+                "Confia ao Senhor as tuas obras, e teus pensamentos serão estabelecidos." — Provérbios 16:3
+            </p>
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="acoes">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir / Salvar PDF</button>
+            <a href="resultado.html" class="btn btn-secondary">📊 Ver Resultados</a>
+            <a href="index.html" class="btn btn-secondary">🏠 Início</a>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p class="marca">Discipulado 360º - Plenitude IEC™</p>
+        <p>Formando líderes saudáveis para igrejas saudáveis</p>
+        <p style="font-size: 0.85rem; margin-top: 1rem;">© Plenitude IEC™ — Todos os direitos reservados</p>
+    </footer>
+
+    <script>
+        // ════════════════════════════════════════════════════
+        // BANCO DE PLANOS POR COMPETÊNCIA
+        // ════════════════════════════════════════════════════
+        const COMPETENCIAS = [
+            {
+                id: 'C1', nome: 'Vida Espiritual', icone: '🙏', pilar: 'Caráter', cor: '#6366f1', perguntas: 6,
+                praticas: [
+                    'Tempo devocional diário (mín. 30 min) com Bíblia + oração',
+                    'Jejum semanal ou quinzenal por direção',
+                    'Lectio Divina 1x por semana',
+                    'Retiro espiritual de 24h por trimestre',
+                    'Memorização de 1 versículo por semana'
+                ],
+                recursos: [
+                    'Livro: "A Disciplina Espiritual do Discípulo" — Donald Whitney',
+                    'Livro: "Celebração da Disciplina" — Richard Foster',
+                    'App: YouVersion / Bible Project',
+                    'Podcast: Sermões expositivos'
+                ],
+                versiculo: '"Permaneçam em mim, e eu permanecerei em vocês."',
+                referencia: 'João 15:4'
+            },
+            {
+                id: 'C2', nome: 'Inteligência Emocional Cristã', icone: '💚', pilar: 'Caráter', cor: '#10b981', perguntas: 12,
+                praticas: [
+                    'Diário emocional 3x por semana (gatilhos e reações)',
+                    'Terapia ou aconselhamento bíblico mensal',
+                    'Pratica de pausa antes de reagir (regra dos 10s)',
+                    'Pedidos de perdão genuínos quando errar',
+                    'Técnica de respiração + oração nos momentos de tensão'
+                ],
+                recursos: [
+                    'Livro: "Espiritualidade Emocionalmente Saudável" — Peter Scazzero',
+                    'Livro: "Regras para Ressincronizar a Alma" — John Mark Comer',
+                    'Curso: Inteligência Emocional para Líderes',
+                    'Mentoria com conselheiro cristão certificado'
+                ],
+                versiculo: '"Acima de tudo, guarda o teu coração, porque dele procedem as fontes da vida."',
+                referencia: 'Provérbios 4:23'
+            },
+            {
+                id: 'C3', nome: 'Pregação e Ensino', icone: '📖', pilar: 'Competência', cor: '#f59e0b', perguntas: 6,
+                praticas: [
+                    'Reservar 8-10h por semana para preparo',
+                    'Estudar exegese e hermenêutica formalmente',
+                    'Gravar suas pregações e revisá-las criticamente',
+                    'Pedir feedback de 3 pessoas após cada pregação',
+                    'Participar de conferências de pregadores anualmente'
+                ],
+                recursos: [
+                    'Livro: "Pregação Cristocêntrica" — Bryan Chapell',
+                    'Livro: "Manda Brasa" — Hernandes Dias Lopes',
+                    'Curso de Hermenêutica Bíblica (CPAJ ou similar)',
+                    'Comentários: Tyndale, ESV Study Bible'
+                ],
+                versiculo: '"Procura apresentar-te diante de Deus aprovado, manejando bem a palavra da verdade."',
+                referencia: '2 Timóteo 2:15'
+            },
+            {
+                id: 'C4', nome: 'Cuidado Pastoral', icone: '🤲', pilar: 'Competência', cor: '#ec4899', perguntas: 6,
+                praticas: [
+                    'Agenda de visitas pastorais (mín. 2 por semana)',
+                    'Bloco semanal para aconselhamento',
+                    'Acompanhar família em luto/crise por pelo menos 30 dias',
+                    'Conhecer aniversários e datas relevantes do rebanho',
+                    'Estabelecer limites saudáveis para evitar burnout'
+                ],
+                recursos: [
+                    'Livro: "Aconselhamento Bíblico" — Jay Adams',
+                    'Livro: "Cuidado Mútuo" — David Powlison',
+                    'Curso: Aconselhamento Bíblico (CPAJ)',
+                    'Treinamento em primeiros socorros emocionais'
+                ],
+                versiculo: '"Procura conhecer bem o estado das tuas ovelhas; cuida bem dos teus rebanhos."',
+                referencia: 'Provérbios 27:23'
+            },
+            {
+                id: 'C5', nome: 'Liderança Servidora', icone: '👑', pilar: 'Competência', cor: '#8b5cf6', perguntas: 6,
+                praticas: [
+                    'Reuniões semanais de equipe com pauta clara',
+                    'Delegar pelo menos 1 nova responsabilidade ao mês',
+                    'Sessão mensal de feedback 360º com a equipe',
+                    'Praticar atos diários de serviço (não-líder)',
+                    'Submeter decisões importantes à liderança superior'
+                ],
+                recursos: [
+                    'Livro: "Liderança Servidora" — Robert Greenleaf',
+                    'Livro: "Líder de 360º" — John Maxwell',
+                    'Livro: "O Pastor Como Líder" — John MacArthur',
+                    'Curso de gestão ministerial'
+                ],
+                versiculo: '"O maior entre vocês deverá ser servo dos demais."',
+                referencia: 'Mateus 23:11'
+            },
+            {
+                id: 'C6', nome: 'Discipulado e Multiplicação', icone: '🌱', pilar: 'Competência', cor: '#14b8a6', perguntas: 6,
+                praticas: [
+                    'Discipular 2-3 pessoas semanalmente (1h cada)',
+                    'Ter um plano estruturado de discipulado (12-24 meses)',
+                    'Compartilhar vida, não só conteúdo (refeições, eventos)',
+                    'Treinar discípulos para que discipulem outros',
+                    'Acompanhar indicadores: oração, leitura, evangelismo'
+                ],
+                recursos: [
+                    'Livro: "O Mestre Modelo" — Robert Coleman',
+                    'Livro: "Discipulado Genuíno" — David Platt',
+                    'Material: "Plano de Discipulado" da Plenitude IEC™',
+                    'Workshop: Multiplicação de Discípulos'
+                ],
+                versiculo: '"O que de mim ouviste... transmite a homens fiéis... que sejam capazes de instruir outros."',
+                referencia: '2 Timóteo 2:2'
+            },
+            {
+                id: 'C7', nome: 'Comunhão e Trabalho em Equipe', icone: '🤝', pilar: 'Comunhão', cor: '#f97316', perguntas: 6,
+                praticas: [
+                    'Café/refeição semanal com pelo menos 1 colega de ministério',
+                    'Praticar reconciliação rápida (Mt 5:23-24)',
+                    'Ter grupo de transparência (3-4 pessoas)',
+                    'Celebrar vitórias da equipe publicamente',
+                    'Investir em construção de cultura saudável'
+                ],
+                recursos: [
+                    'Livro: "Vida em Comunidade" — Dietrich Bonhoeffer',
+                    'Livro: "Os 5 Desafios das Equipes" — Patrick Lencioni',
+                    'Livro: "Conexões" — Larry Crabb',
+                    'Retiros de equipe trimestrais'
+                ],
+                versiculo: '"Como é bom e agradável quando os irmãos vivem em união!"',
+                referencia: 'Salmos 133:1'
+            },
+            {
+                id: 'C8', nome: 'Missão e Visão de Reino', icone: '🌍', pilar: 'Comunhão', cor: '#06b6d4', perguntas: 6,
+                praticas: [
+                    'Evangelizar pelo menos 1 pessoa por semana',
+                    'Apoiar 1 missionário (oração + finanças) mensalmente',
+                    'Participar de viagem missional anual',
+                    'Liderar projeto de impacto social na comunidade',
+                    'Treinar a igreja em evangelismo prático'
+                ],
+                recursos: [
+                    'Livro: "Igreja Missional" — Alan Hirsch',
+                    'Livro: "Evangelismo no Século 21" — Tim Keller',
+                    'Livro: "Centro" — Tim Keller (igreja na cidade)',
+                    'Curso: Perspectivas no Movimento Missionário'
+                ],
+                versiculo: '"Ide por todo o mundo e pregai o evangelho a toda criatura."',
+                referencia: 'Marcos 16:15'
+            }
+        ];
+
+        // ════════════════════════════════════════════════════
+        // OBTER DADOS
+        // ════════════════════════════════════════════════════
+        function obterDados() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('dados')) {
+                try { return JSON.parse(decodeURIComponent(params.get('dados'))); } catch (e) {}
+            }
+            const salvo = localStorage.getItem('discipulado360_resultado');
+            if (salvo) {
+                try { return JSON.parse(salvo); } catch (e) {}
+            }
+            return gerarDadosExemplo();
+        }
+
+        function gerarDadosExemplo() {
+            const respostas = {};
+            COMPETENCIAS.forEach(comp => {
+                for (let i = 1; i <= comp.perguntas; i++) {
+                    respostas[`${comp.id}_Q${i}`] = Math.floor(Math.random() * 3) + 3;
+                }
+            });
+            return {
+                nome: 'Visualização Demo',
+                cargo: 'Líder',
+                igreja: 'IEC',
+                tipoAvaliador: 'Autoavaliação',
+                respostas: respostas,
+                demo: true
+            };
+        }
+
+        // ════════════════════════════════════════════════════
+        // CALCULAR MÉDIAS
+        // ════════════════════════════════════════════════════
+        function calcularMedias(respostas) {
+            const medias = {};
+            let somaTotal = 0, totalQ = 0;
+            COMPETENCIAS.forEach(comp => {
+                let soma = 0, count = 0;
+                for (let i = 1; i <= comp.perguntas; i++) {
+                    const valor = respostas[`${comp.id}_Q${i}`];
+                    if (valor) { soma += Number(valor); count++; }
+                }
+                medias[comp.id] = count > 0 ? soma / count : 0;
+                somaTotal += soma;
+                totalQ += count;
+            });
+            medias.geral = totalQ > 0 ? somaTotal / totalQ : 0;
+            return medias;
+        }
+
+        // ════════════════════════════════════════════════════
+        // OBTER NÍVEL
+        // ════════════════════════════════════════════════════
+        function obterNivel(valor) {
+            const v = parseFloat(valor);
+            if (v >= 4.5) return { texto: '✨ Exemplar', cor: '#10b981', urgencia: 'baixa' };
+            if (v >= 3.5) return { texto: '🌲 Maduro', cor: '#3b82f6', urgencia: 'baixa' };
+            if (v >= 2.5) return { texto: '🌳 Consistente', cor: '#f59e0b', urgencia: 'media' };
+            if (v >= 1.5) return { texto: '🌿 Em Desenvolvimento', cor: '#f97316', urgencia: 'urgente' };
+            return { texto: '🌱 Iniciante', cor: '#ef4444', urgencia: 'urgente' };
+        }
+
+        // ════════════════════════════════════════════════════
+        // RENDERIZAR USUÁRIO
+        // ════════════════════════════════════════════════════
+        function renderizarUsuario(dados, medias) {
+            const demo = dados.demo ? ' <span style="color: var(--secondary); font-size: 0.85rem;">[DEMO]</span>' : '';
+            document.getElementById('userName').innerHTML = `Olá, ${dados.nome}!${demo}`;
+            document.getElementById('userDetails').textContent = `${dados.cargo || ''} ${dados.igreja ? '· ' + dados.igreja : ''}`;
+            document.getElementById('userData').textContent = `Plano gerado em ${new Date().toLocaleDateString('pt-BR')}`;
+            document.getElementById('mediaGeral').textContent = medias.geral.toFixed(2);
+        }
+
+        // ════════════════════════════════════════════════════
+        // RENDERIZAR PRIORIDADES (3 menores)
+        // ════════════════════════════════════════════════════
+        function renderizarPrioridades(medias) {
+            const ordenadas = COMPETENCIAS.map(c => ({ ...c, valor: medias[c.id] }))
+                .sort((a, b) => a.valor - b.valor)
+                .slice(0, 3);
+            
+            const container = document.getElementById('prioridadesGrid');
+            container.innerHTML = ordenadas.map((c, idx) => {
+                const nivel = obterNivel(c.valor);
+                const urgencias = ['urgente', 'media', 'baixa'];
+                const tags = ['🚨 Prioridade Máxima', '⚡ Atenção Necessária', '🎯 Refinamento'];
+                
+                return `
+                    <div class="prioridade-card ${urgencias[idx]}">
+                        <span class="prioridade-tag">${tags[idx]}</span>
+                        <div class="prioridade-icone">${c.icone}</div>
+                        <h3>${c.nome}</h3>
+                        <div class="prioridade-valor" style="color: ${c.cor};">${c.valor.toFixed(2)} / 5.00</div>
+                        <p class="prioridade-desc">
+                            <strong>${nivel.texto}</strong><br>
+                            ${idx === 0 ? 'Foque sua energia aqui nos próximos 30 dias.' : 
+                              idx === 1 ? 'Inicie esta área no segundo mês.' : 
+                              'Considere refinamento na fase 3.'}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ════════════════════════════════════════════════════
+        // RENDERIZAR PLANOS DETALHADOS
+        // ════════════════════════════════════════════════════
+        function renderizarPlanosDetalhados(medias) {
+            const ordenadas = COMPETENCIAS.map(c => ({ ...c, valor: medias[c.id] }))
+                .sort((a, b) => a.valor - b.valor);
+            
+            const container = document.getElementById('planosDetalhados');
+            container.innerHTML = ordenadas.map(c => {
+                const nivel = obterNivel(c.valor);
+                
+                return `
+                    <div class="plano-competencia" style="border-left-color: ${c.cor};">
+                        <div class="plano-header">
+                            <div class="plano-icone">${c.icone}</div>
+                            <div class="plano-info">
+                                <h3>${c.nome}</h3>
+                                <p class="pilar">Pilar: ${c.pilar}</p>
+                            </div>
+                            <div class="plano-pontuacao">
+                                <div class="numero" style="color: ${c.cor};">${c.valor.toFixed(2)}</div>
+                                <div class="nivel" style="color: ${nivel.cor};">${nivel.texto}</div>
+                            </div>
+                        </div>
+                        <div class="plano-conteudo">
+                            <div class="plano-bloco">
+                                <h4>🎯 Práticas Recomendadas</h4>
+                                <ul>${c.praticas.map(p => `<li>${p}</li>`).join('')}</ul>
+                            </div>
+                            <div class="plano-bloco">
+                                <h4>📚 Recursos Sugeridos</h4>
+                                <ul>${c.recursos.map(r => `<li>${r}</li>`).join('')}</ul>
+                            </div>
+                            <div class="plano-bloco versiculo">
+                                <h4>📖 Versículo de Foco</h4>
+                                <p>"${c.versiculo}"</p>
+                                <cite>— ${c.referencia}</cite>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ════════════════════════════════════════════════════
+        // SALVAR COMPROMISSOS
+        // ════════════════════════════════════════════════════
+        function inicializarCompromissos() {
+            const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+            const salvos = JSON.parse(localStorage.getItem('discipulado360_compromissos') || '{}');
+            
+            checkboxes.forEach(cb => {
+                if (salvos[cb.id]) cb.checked = true;
+                cb.addEventListener('change', () => {
+                    const atuais = JSON.parse(localStorage.getItem('discipulado360_compromissos') || '{}');
+                    atuais[cb.id] = cb.checked;
+                    localStorage.setItem('discipulado360_compromissos', JSON.stringify(atuais));
+                });
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // INICIALIZAÇÃO
+        // ════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            const dados = obterDados();
+            if (!dados || !dados.respostas) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="sem-dados">
+                        <h2>📭 Nenhum resultado encontrado</h2>
+                        <p>Realize uma avaliação para gerar seu plano de desenvolvimento.</p>
+                        <a href="avaliacao.html" class="btn btn-primary" style="margin-top: 1rem;">🚀 Iniciar Avaliação</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const medias = calcularMedias(dados.respostas);
+            renderizarUsuario(dados, medias);
+            renderizarPrioridades(medias);
+            renderizarPlanosDetalhados(medias);
+            inicializarCompromissos();
+        });
+    </script>
+</body>
+</html>
