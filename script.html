@@ -1,0 +1,1108 @@
+/**
+ * ============================================================
+ * ✝️ PLENITUDE IEC™ — DISCIPULADO 360°
+ * Sistema de Avaliação 360° de Liderança Cristã
+ * Backend - Google Apps Script
+ * ✅ CONFIGURADO PARA: Ibav / amavroger@gmail.com
+ * Versão 4.0 — Baseada na arquitetura Impulso IE™
+ * ============================================================
+ */
+
+// ============ CONFIGURAÇÕES GLOBAIS ============
+const CONFIG = {
+  API_KEY: '2026Plenitude360$',
+  SHEET_ID: '1noW2vcNZcI1Ar4lSvfX-TuRwJXaxs-L783LUTU01nOI',
+  MIN_EVALUATORS: 3,
+  MAX_EVALUATORS: 30,
+  EVALUATOR_BASE_URL: 'https://amavroger.github.io/Avaliador360IEC/',
+  DASHBOARD_BASE_URL: 'https://amavroger-hue.github.io/LiderIEC360/',
+  ADMIN_EMAIL: 'amavroger@gmail.com',
+  COMPANY_NAME: 'Plenitude IEC™ — Discipulado 360°',
+  TAGLINE: 'Movidos Pela Graça',
+  MILESTONE_TRIGGERS: [3, 5, 10, 15, 20, 25, 30],
+  TIMEZONE: 'America/Sao_Paulo'
+};
+
+const COMPETENCIES = [
+  { id: 'C1', name: 'Vida Espiritual',           color: '#cc0000' },
+  { id: 'C2', name: 'Inteligência Emocional',    color: '#d97706' },
+  { id: 'C3', name: 'Pregação e Ensino',         color: '#005ce6' },
+  { id: 'C4', name: 'Cuidado Pastoral',          color: '#00994d' },
+  { id: 'C5', name: 'Liderança Servidora',       color: '#7c3aed' },
+  { id: 'C6', name: 'Discipulado',               color: '#db2777' },
+  { id: 'C7', name: 'Comunhão e Equipe',         color: '#0891b2' },
+  { id: 'C8', name: 'Missão de Reino',           color: '#ea580c' }
+];
+
+// ============ ROTEADORES PRINCIPAIS ============
+
+function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    const apiKey = e.parameter.apiKey;
+
+    if (apiKey !== CONFIG.API_KEY) {
+      return jsonResponse({ ok: false, error: 'Chave de API inválida' });
+    }
+
+    switch (action) {
+      case 'getLeader':
+        return handleGetLeader(e.parameter.code);
+      case 'getStatus':
+        return handleGetStatus(e.parameter.code);
+      case 'loginLeader':
+        return handleLoginLeader(e.parameter.email, e.parameter.pin);
+      case 'ping':
+        return jsonResponse({ ok: true, message: 'API Plenitude 360° online!', timestamp: new Date().toISOString() });
+      default:
+        return jsonResponse({ ok: false, error: 'Ação inválida: ' + action });
+    }
+  } catch (err) {
+    Logger.log('doGet error: ' + err.toString());
+    return jsonResponse({ ok: false, error: err.toString() });
+  }
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+
+    if (data.apiKey !== CONFIG.API_KEY) {
+      return jsonResponse({ ok: false, error: 'Chave de API inválida' });
+    }
+
+    switch (data.action) {
+      case 'registerLeader':
+        return handleRegisterLeader(data);
+      case 'submitEvaluation':
+        return handleSubmitEvaluation(data);
+      case 'closeEvaluation':
+        return handleCloseEvaluation(data);
+      default:
+        return jsonResponse({ ok: false, error: 'Ação inválida: ' + data.action });
+    }
+  } catch (err) {
+    Logger.log('doPost error: ' + err.toString());
+    return jsonResponse({ ok: false, error: err.toString() });
+  }
+}
+
+function jsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============ HANDLERS ============
+
+function handleGetLeader(code) {
+  if (!code) return jsonResponse({ ok: false, error: 'Código não informado' });
+
+  const leader = findLeaderByCode(code);
+  if (!leader) return jsonResponse({ ok: false, error: 'Código não encontrado' });
+
+  return jsonResponse({
+    ok: true,
+    leader: {
+      name: leader.name,
+      position: leader.position,
+      company: leader.company,
+      status: leader.status || 'collecting',
+      evaluatorCount: Number(leader.evaluatorCount) || 0
+    }
+  });
+}
+
+function handleLoginLeader(email, pin) {
+  if (!email || !pin) {
+    return jsonResponse({ ok: false, error: 'E-mail e PIN são obrigatórios' });
+  }
+
+  const sheet = getSheet('Leaders');
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return jsonResponse({ ok: false, error: 'Não encontrado' });
+
+  const headers = data[0];
+  const emailIdx = headers.indexOf('email');
+  const pinIdx = headers.indexOf('pin');
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][emailIdx]).toLowerCase() === String(email).toLowerCase()
+        && String(data[i][pinIdx]) === String(pin)) {
+      const obj = {};
+      headers.forEach((h, idx) => obj[h] = data[i][idx]);
+      return jsonResponse({
+        ok: true,
+        leader: {
+          code: obj.code,
+          name: obj.name,
+          email: obj.email,
+          position: obj.position,
+          company: obj.company,
+          status: obj.status || 'collecting',
+          evaluatorCount: Number(obj.evaluatorCount) || 0
+        }
+      });
+    }
+  }
+
+  return jsonResponse({ ok: false, error: 'E-mail ou PIN incorretos' });
+}
+
+function handleGetStatus(code) {
+  if (!code) return jsonResponse({ ok: false, error: 'Código não informado' });
+
+  const leader = findLeaderByCode(code);
+  if (!leader) return jsonResponse({ ok: false, error: 'Não encontrado' });
+
+  const evaluations = getEvaluationsByCode(code);
+  const distribution = { superior: 0, peer: 0, subordinate: 0 };
+
+  evaluations.forEach(ev => {
+    if (distribution[ev.relation] !== undefined) {
+      distribution[ev.relation]++;
+    }
+  });
+
+  const milestones = getMilestonesHistory(code);
+  const count = evaluations.length;
+
+  let scores = null;
+  if (count >= CONFIG.MIN_EVALUATORS) {
+    scores = calculateScores(leader, evaluations);
+  }
+
+  return jsonResponse({
+    ok: true,
+    evaluatorCount: count,
+    status: leader.status || 'collecting',
+    distribution: distribution,
+    milestones: milestones,
+    scores: scores
+  });
+}
+
+function handleRegisterLeader(data) {
+  const sheet = getSheet('Leaders');
+  const code = data.leaderCode;
+
+  if (findLeaderByCode(code)) {
+    return jsonResponse({ ok: false, error: 'Código já cadastrado' });
+  }
+
+  const leader = data.leader;
+
+  // Verificar se e-mail já existe
+  const allData = sheet.getDataRange().getValues();
+  const headers = allData[0];
+  const emailIdx = headers.indexOf('email');
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][emailIdx]).toLowerCase() === String(leader.email).toLowerCase()) {
+      return jsonResponse({ ok: false, error: 'Este e-mail já possui cadastro. Use a opção "Já tenho cadastro" para entrar.' });
+    }
+  }
+
+  sheet.appendRow([
+    code,
+    data.timestamp,
+    leader.name,
+    leader.email,
+    leader.whatsapp,
+    leader.company,
+    leader.position,
+    leader.level,
+    leader.teamSize,
+    leader.experience,
+    'collecting',
+    0,
+    data.selfAssessment.strengths,
+    data.selfAssessment.improvements,
+    data.selfAssessment.impact,
+    leader.pin || ''
+  ]);
+
+  const selfSheet = getSheet('SelfAssessment');
+  selfSheet.appendRow([
+    code,
+    data.timestamp,
+    JSON.stringify(data.selfAssessment.responses)
+  ]);
+
+  try {
+    sendWelcomeEmail(leader, code);
+  } catch (e) {
+    Logger.log('Erro ao enviar e-mail boas-vindas: ' + e.toString());
+  }
+
+  return jsonResponse({ ok: true, code: code });
+}
+
+function handleSubmitEvaluation(data) {
+  const code = data.leaderCode;
+  const leader = findLeaderByCode(code);
+
+  if (!leader) {
+    return jsonResponse({ ok: false, error: 'Código não encontrado' });
+  }
+
+  if (leader.status === 'closed') {
+    return jsonResponse({ ok: false, error: 'Avaliação encerrada pelo líder' });
+  }
+
+  const currentCount = Number(leader.evaluatorCount) || 0;
+  if (currentCount >= CONFIG.MAX_EVALUATORS) {
+    return jsonResponse({
+      ok: false,
+      error: `Limite máximo de ${CONFIG.MAX_EVALUATORS} avaliadores atingido`
+    });
+  }
+
+  const evalSheet = getSheet('Evaluations');
+  const ev = data.evaluation;
+  evalSheet.appendRow([
+    code,
+    ev.anonId,
+    data.timestamp,
+    ev.relation,
+    ev.timeKnowing,
+    JSON.stringify(ev.responses),
+    ev.strengths,
+    ev.improvements,
+    ev.impact
+  ]);
+
+  const newCount = currentCount + 1;
+  updateLeaderField(code, 'evaluatorCount', newCount);
+
+  try {
+    checkAndNotifyMilestones(code, newCount, leader);
+  } catch (e) {
+    Logger.log('Erro em milestones: ' + e.toString());
+  }
+
+  if (newCount >= CONFIG.MAX_EVALUATORS) {
+    try {
+      autoCloseAndGenerateReport(code, leader);
+    } catch (e) {
+      Logger.log('Erro auto-close: ' + e.toString());
+    }
+  }
+
+  return jsonResponse({ ok: true, count: newCount });
+}
+
+function handleCloseEvaluation(data) {
+  const code = data.leaderCode;
+  const leader = findLeaderByCode(code);
+
+  if (!leader) {
+    return jsonResponse({ ok: false, error: 'Não encontrado' });
+  }
+
+  const count = Number(leader.evaluatorCount) || 0;
+  if (count < CONFIG.MIN_EVALUATORS) {
+    return jsonResponse({
+      ok: false,
+      error: `Mínimo de ${CONFIG.MIN_EVALUATORS} avaliadores não atingido`
+    });
+  }
+
+  updateLeaderField(code, 'status', 'closed');
+
+  try {
+    generateAndSendReport(code, leader);
+  } catch (e) {
+    Logger.log('Erro ao gerar relatório: ' + e.toString());
+  }
+
+  return jsonResponse({ ok: true });
+}
+
+// ============ FUNÇÕES AUXILIARES DA PLANILHA ============
+
+function getSheet(name) {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    throw new Error(`Aba "${name}" não encontrada. Execute setupSpreadsheet() primeiro.`);
+  }
+  return sheet;
+}
+
+function findLeaderByCode(code) {
+  const sheet = getSheet('Leaders');
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return null;
+
+  const headers = data[0];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) {
+      const obj = { rowIndex: i + 1 };
+      headers.forEach((h, idx) => obj[h] = data[i][idx]);
+      return obj;
+    }
+  }
+  return null;
+}
+
+function updateLeaderField(code, field, value) {
+  const sheet = getSheet('Leaders');
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const colIdx = headers.indexOf(field);
+
+  if (colIdx === -1) {
+    Logger.log('Campo não encontrado: ' + field);
+    return false;
+  }
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) {
+      sheet.getRange(i + 1, colIdx + 1).setValue(value);
+      return true;
+    }
+  }
+  return false;
+}
+
+function getEvaluationsByCode(code) {
+  const sheet = getSheet('Evaluations');
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const headers = data[0];
+  const result = [];
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) {
+      const obj = {};
+      headers.forEach((h, idx) => obj[h] = data[i][idx]);
+      try {
+        obj.responses = JSON.parse(obj.responses || '[]');
+      } catch (e) {
+        obj.responses = [];
+      }
+      result.push(obj);
+    }
+  }
+  return result;
+}
+
+function getSelfAssessment(code) {
+  const sheet = getSheet('SelfAssessment');
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) {
+      try {
+        return JSON.parse(data[i][2] || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+  }
+  return [];
+}
+
+function getMilestonesHistory(code) {
+  const sheet = getSheet('Milestones');
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const result = [];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) {
+      const ts = new Date(data[i][1]);
+      result.push({
+        time: Utilities.formatDate(ts, CONFIG.TIMEZONE, 'dd/MM HH:mm'),
+        text: data[i][3] || `${data[i][2]} avaliadores atingidos`,
+        icon: getMilestoneIcon(data[i][2])
+      });
+    }
+  }
+  return result.reverse();
+}
+
+function getMilestoneIcon(count) {
+  if (count >= 30) return '🏆';
+  if (count >= 20) return '⭐';
+  if (count >= 10) return '🌟';
+  if (count >= 5) return '✨';
+  if (count >= 3) return '🎉';
+  return '📌';
+}
+
+function addMilestoneToHistory(code, count, type) {
+  const sheet = getSheet('Milestones');
+  sheet.appendRow([code, new Date(), count, type]);
+}
+
+// ============ MARCOS E NOTIFICAÇÕES ============
+
+function checkAndNotifyMilestones(code, count, leader) {
+  if (!CONFIG.MILESTONE_TRIGGERS.includes(count)) return;
+
+  const isMinimum = count === CONFIG.MIN_EVALUATORS;
+  const isMaximum = count === CONFIG.MAX_EVALUATORS;
+
+  const text = isMinimum
+    ? `🎉 Mínimo de ${count} avaliadores atingido — relatório liberado!`
+    : isMaximum
+    ? `🏆 Limite máximo de ${count} avaliadores atingido — encerramento automático`
+    : `✨ ${count} avaliadores responderam`;
+
+  addMilestoneToHistory(code, count, text);
+
+  try {
+    sendMilestoneEmail(leader, code, count, isMinimum, isMaximum);
+  } catch (e) {
+    Logger.log('Erro email milestone: ' + e.toString());
+  }
+}
+
+function sendWelcomeEmail(leader, code) {
+  const dashboardLink = `${CONFIG.DASHBOARD_BASE_URL}?dashboard=${code}`;
+  const evaluatorLink = `${CONFIG.EVALUATOR_BASE_URL}?codigo=${code}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:0 auto;">
+      <div style="background: linear-gradient(135deg,#0b4aa2,#062b62); color:#fff; padding:32px; text-align:center; border-radius:14px 14px 0 0;">
+        <h1 style="margin:0; font-size:26px;">✝️ Sua jornada começou!</h1>
+        <p style="margin:10px 0 0; opacity:0.95;">${CONFIG.COMPANY_NAME}</p>
+      </div>
+      <div style="padding:28px; background:#fff;">
+        <p>Olá <strong>${leader.name}</strong>,</p>
+        <p>Sua autoavaliação foi salva com sucesso! Que Deus te abençoe nessa jornada de crescimento ministerial. 🙏</p>
+        <div style="background:#f4f9ff; border-left:5px solid #0b63ce; padding:18px; margin:20px 0; border-radius:8px;">
+          <p style="margin:0 0 10px; font-weight:bold; color:#063b7a; font-size:18px;">Seu Código Único:</p>
+          <div style="font-size:28px; font-weight:bold; color:#0b63ce; letter-spacing:3px; font-family:monospace;">${code}</div>
+        </div>
+        <h3 style="color:#063b7a;">📨 Próximos Passos</h3>
+        <ol style="line-height:1.8;">
+          <li><strong>Compartilhe com seus avaliadores:</strong><br>
+            <a href="${evaluatorLink}" style="color:#0b63ce; word-break:break-all;">${evaluatorLink}</a>
+          </li>
+          <li><strong>Convide entre 3 e 30 pessoas</strong> (pares, liderados, supervisores)</li>
+          <li><strong>Acompanhe pelo painel de controle</strong> com seu e-mail e PIN</li>
+        </ol>
+        <div style="text-align:center; margin:28px 0;">
+          <a href="${dashboardLink}" style="background:#0b63ce; color:#fff; padding:16px 32px; border-radius:10px; text-decoration:none; font-weight:bold; display:inline-block;">
+            🎛️ Acessar Meu Painel
+          </a>
+        </div>
+        <div style="background:#fef3c7; border-left:5px solid #d97706; padding:14px; margin:20px 0; border-radius:8px;">
+          <p style="margin:0; font-size:14px;"><strong>💡 Dica:</strong> Quando atingir 3 avaliadores, você receberá outro e-mail e poderá decidir encerrar a coleta — ou aguardar mais respostas até o limite de 30.</p>
+        </div>
+        <div style="background:#f4f9ff; border-left:5px solid #0b63ce; padding:14px; margin:20px 0; border-radius:8px; font-style:italic;">
+          "Como o ferro com ferro se afia, assim o homem afia o seu próximo." <strong>— Provérbios 27:17</strong>
+        </div>
+      </div>
+      <div style="background:#063b7a; color:#fff; padding:18px; text-align:center; border-radius:0 0 14px 14px; font-size:12px;">
+        ${CONFIG.COMPANY_NAME}
+      </div>
+    </div>
+  `;
+
+  MailApp.sendEmail({
+    to: leader.email,
+    cc: CONFIG.ADMIN_EMAIL,
+    subject: `✝️ ${CONFIG.COMPANY_NAME} - Seu código: ${code}`,
+    htmlBody: html
+  });
+}
+
+function sendMilestoneEmail(leader, code, count, isMinimum, isMaximum) {
+  const dashboardLink = `${CONFIG.DASHBOARD_BASE_URL}?dashboard=${code}`;
+  let subject, html;
+
+  if (isMinimum) {
+    subject = `🎉 ${leader.name}, seu Relatório 360° já está liberado!`;
+    html = buildMinimumReachedEmail(leader, code, count, dashboardLink);
+  } else if (isMaximum) {
+    subject = `🏆 Limite atingido: 30 avaliadores responderam!`;
+    html = buildMaximumReachedEmail(leader, code, count);
+  } else {
+    subject = `📊 Atualização: ${count} avaliadores responderam sua 360°`;
+    html = buildMilestoneEmail(leader, code, count, dashboardLink);
+  }
+
+  MailApp.sendEmail({ to: leader.email, subject: subject, htmlBody: html });
+}
+
+function buildMinimumReachedEmail(leader, code, count, dashboardLink) {
+  return `
+    <div style="font-family: Arial; max-width:600px; margin:0 auto;">
+      <div style="background: linear-gradient(135deg,#10b981,#059669); color:#fff; padding:36px; text-align:center; border-radius:14px 14px 0 0;">
+        <div style="font-size:60px; margin-bottom:10px;">🎉</div>
+        <h1 style="margin:0; font-size:30px;">Mínimo Atingido!</h1>
+        <p style="font-size:18px; margin:10px 0 0;">Você tem <strong>${count} avaliadores</strong> respondidos</p>
+      </div>
+      <div style="padding:28px; background:#fff;">
+        <p>Olá <strong>${leader.name}</strong>,</p>
+        <p>🎯 <strong>Excelente notícia!</strong> Sua avaliação 360° atingiu o mínimo de 3 avaliadores. Agora você pode:</p>
+        <div style="background:#f0fdf4; border-left:5px solid #10b981; padding:16px; margin:20px 0; border-radius:8px;">
+          <p style="margin:0 0 8px;">✅ <strong>Encerrar agora</strong> e gerar o relatório</p>
+          <p style="margin:0;">✅ <strong>Aguardar mais</strong> avaliadores (até 30)</p>
+        </div>
+        <div style="text-align:center; margin:28px 0;">
+          <a href="${dashboardLink}" style="background:#0b63ce; color:#fff; padding:16px 36px; border-radius:10px; text-decoration:none; font-weight:bold; display:inline-block;">
+            🎛️ Decidir no Painel de Controle
+          </a>
+        </div>
+        <p style="color:#64748b; font-size:13px;">Código: <strong>${code}</strong></p>
+      </div>
+    </div>
+  `;
+}
+
+function buildMilestoneEmail(leader, code, count, dashboardLink) {
+  const remaining = CONFIG.MAX_EVALUATORS - count;
+  return `
+    <div style="font-family: Arial; max-width:600px; margin:0 auto;">
+      <div style="background: linear-gradient(135deg,#0b63ce,#084aa0); color:#fff; padding:30px; text-align:center; border-radius:14px 14px 0 0;">
+        <h1 style="margin:0; font-size:26px;">📊 ${count} avaliadores!</h1>
+      </div>
+      <div style="padding:24px; background:#fff;">
+        <p>Olá <strong>${leader.name}</strong>,</p>
+        <p>Sua avaliação agora tem <strong>${count} avaliadores</strong> respondidos. Restam ${remaining} vagas até o limite.</p>
+        <div style="text-align:center; margin:24px 0;">
+          <a href="${dashboardLink}" style="background:#0b63ce; color:#fff; padding:14px 28px; border-radius:10px; text-decoration:none; font-weight:bold;">
+            🎛️ Acessar Painel
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildMaximumReachedEmail(leader, code, count) {
+  return `
+    <div style="font-family: Arial; max-width:600px; margin:0 auto;">
+      <div style="background: linear-gradient(135deg,#7c3aed,#5b21b6); color:#fff; padding:36px; text-align:center; border-radius:14px 14px 0 0;">
+        <div style="font-size:60px;">🏆</div>
+        <h1 style="margin:10px 0 0; font-size:28px;">Limite Máximo Atingido!</h1>
+      </div>
+      <div style="padding:28px; background:#fff;">
+        <p>Olá <strong>${leader.name}</strong>,</p>
+        <p>🎉 Sua avaliação atingiu o limite máximo de <strong>${count} avaliadores</strong>. Foi <strong>encerrada automaticamente</strong> e seu relatório está sendo gerado.</p>
+        <div style="background:#f0fdf4; border-left:5px solid #10b981; padding:16px; margin:20px 0; border-radius:8px;">
+          <p style="margin:0;">📧 Você receberá o <strong>PDF completo</strong> em poucos minutos.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============ AUTO-ENCERRAMENTO ============
+
+function autoCloseAndGenerateReport(code, leader) {
+  updateLeaderField(code, 'status', 'closed');
+  generateAndSendReport(code, leader);
+}
+
+// ============ CÁLCULO DE SCORES ============
+
+function calculateScores(leader, evaluations) {
+  const selfResponses = getSelfAssessment(leader.code);
+  const selfByComp = calcCompetencyAvg(selfResponses);
+  const allOthersResponses = evaluations.map(e => e.responses);
+  const othersByComp = calcCompetencyAvgFromMultiple(allOthersResponses);
+
+  const superiorEvals = evaluations.filter(e => e.relation === 'superior').map(e => e.responses);
+  const peerEvals = evaluations.filter(e => e.relation === 'peer').map(e => e.responses);
+  const subEvals = evaluations.filter(e => e.relation === 'subordinate').map(e => e.responses);
+
+  return {
+    self: selfByComp,
+    others: othersByComp,
+    selfAvg: avg(selfByComp),
+    superiorAvg: superiorEvals.length ? avg(calcCompetencyAvgFromMultiple(superiorEvals)) : 0,
+    peersAvg: peerEvals.length ? avg(calcCompetencyAvgFromMultiple(peerEvals)) : 0,
+    subordinatesAvg: subEvals.length ? avg(calcCompetencyAvgFromMultiple(subEvals)) : 0,
+    overall: Math.round((avg(othersByComp) / 5) * 100)
+  };
+}
+
+function calcCompetencyAvg(responses) {
+  if (!responses || responses.length !== 48) return [0,0,0,0,0,0,0,0];
+  const result = [];
+  for (let c = 0; c < 8; c++) {
+    let sum = 0, n = 0;
+    for (let q = 0; q < 6; q++) {
+      const idx = c * 6 + q;
+      if (responses[idx] != null) {
+        sum += Number(responses[idx]);
+        n++;
+      }
+    }
+    result.push(n ? +(sum / n).toFixed(2) : 0);
+  }
+  return result;
+}
+
+function calcCompetencyAvgFromMultiple(allResponses) {
+  if (!allResponses || allResponses.length === 0) return [0,0,0,0,0,0,0,0];
+  const compScores = allResponses.map(r => calcCompetencyAvg(r));
+  const result = [];
+  for (let c = 0; c < 8; c++) {
+    const vals = compScores.map(s => s[c]).filter(v => v > 0);
+    result.push(vals.length ? +(vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(2) : 0);
+  }
+  return result;
+}
+
+function avg(arr) {
+  const valid = arr.filter(v => v > 0);
+  if (!valid.length) return 0;
+  return +(valid.reduce((a,b) => a+b, 0) / valid.length).toFixed(2);
+}
+
+function getStyle(overall) {
+  if (overall >= 85) return '✨ Líder Exemplar';
+  if (overall >= 70) return '🌲 Líder Maduro';
+  if (overall >= 55) return '🌳 Líder Consistente';
+  if (overall >= 40) return '🌿 Líder em Desenvolvimento';
+  return '🌱 Líder Iniciante';
+}
+
+// ============ GERAÇÃO DE PDF ============
+
+function generateAndSendReport(code, leader) {
+  const evaluations = getEvaluationsByCode(code);
+  const scores = calculateScores(leader, evaluations);
+  const style = getStyle(scores.overall);
+
+  const charts = {
+    radar: buildRadarChartUrl(scores),
+    bar: buildBarChartUrl(scores),
+    gauge: buildGaugeChartUrl(scores.overall),
+    competencies: buildCompetenciesBarUrl(scores)
+  };
+
+  const comments = consolidateComments(evaluations);
+  const html = buildReportHTML(leader, scores, style, charts, comments, evaluations.length);
+
+  const blob = Utilities.newBlob(html, 'text/html', 'temp.html').getAs('application/pdf');
+  blob.setName(`Relatorio_360_${leader.name.replace(/\s+/g, '_')}_${code}.pdf`);
+
+  const emailHtml = buildReportEmailHTML(leader, scores, style, evaluations.length);
+
+  MailApp.sendEmail({
+    to: leader.email,
+    cc: CONFIG.ADMIN_EMAIL,
+    subject: `✝️ Seu Relatório Executivo 360° está pronto, ${leader.name.split(' ')[0]}!`,
+    htmlBody: emailHtml,
+    attachments: [blob]
+  });
+}
+
+function buildRadarChartUrl(scores) {
+  const config = {
+    type: 'radar',
+    data: {
+      labels: COMPETENCIES.map(c => c.name),
+      datasets: [
+        { label: 'Autoavaliação', data: scores.self, backgroundColor: 'rgba(11,99,206,0.25)', borderColor: '#0b63ce', borderWidth: 3, pointBackgroundColor: '#0b63ce', pointRadius: 5 },
+        { label: 'Outros (média)', data: scores.others, backgroundColor: 'rgba(16,185,129,0.25)', borderColor: '#10b981', borderWidth: 3, pointBackgroundColor: '#10b981', pointRadius: 5 }
+      ]
+    },
+    options: {
+      scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 }, pointLabels: { font: { size: 13, weight: 'bold' } } } },
+      plugins: {
+        title: { display: true, text: 'Mapa 360° de Competências', font: { size: 22, weight: 'bold' }, color: '#063b7a' },
+        legend: { position: 'bottom' }
+      }
+    }
+  };
+  return `https://quickchart.io/chart?width=800&height=600&backgroundColor=white&c=${encodeURIComponent(JSON.stringify(config))}`;
+}
+
+function buildBarChartUrl(scores) {
+  const config = {
+    type: 'bar',
+    data: {
+      labels: ['Autoavaliação', 'Superior', 'Pares', 'Liderados'],
+      datasets: [{ label: 'Score Médio', data: [scores.selfAvg, scores.superiorAvg, scores.peersAvg, scores.subordinatesAvg], backgroundColor: ['#7c3aed', '#cc0000', '#d97706', '#005ce6'], borderRadius: 8 }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Comparativo por Vínculo', font: { size: 22, weight: 'bold' }, color: '#063b7a' },
+        legend: { display: false },
+        datalabels: { color: '#fff', font: { weight: 'bold', size: 14 }, formatter: (v) => v.toFixed(2) }
+      },
+      scales: { y: { min: 0, max: 5, ticks: { stepSize: 1 } } }
+    }
+  };
+  return `https://quickchart.io/chart?width=800&height=500&backgroundColor=white&c=${encodeURIComponent(JSON.stringify(config))}`;
+}
+
+function buildGaugeChartUrl(overall) {
+  const config = {
+    type: 'doughnut',
+    data: { datasets: [{ data: [overall, 100 - overall], backgroundColor: [getScoreColor(overall), '#e5e7eb'], borderWidth: 0 }] },
+    options: {
+      circumference: 180, rotation: 270, cutout: '70%',
+      plugins: {
+        title: { display: true, text: `Score: ${overall}/100`, font: { size: 28, weight: 'bold' }, color: '#063b7a' },
+        legend: { display: false }
+      }
+    }
+  };
+  return `https://quickchart.io/chart?width=700&height=450&backgroundColor=white&c=${encodeURIComponent(JSON.stringify(config))}`;
+}
+
+function buildCompetenciesBarUrl(scores) {
+  const config = {
+    type: 'bar',
+    data: {
+      labels: COMPETENCIES.map(c => c.name),
+      datasets: [
+        { label: 'Autoavaliação', data: scores.self, backgroundColor: '#0b63ce' },
+        { label: 'Outros', data: scores.others, backgroundColor: '#10b981' }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        title: { display: true, text: 'Detalhamento por Competência', font: { size: 22, weight: 'bold' }, color: '#063b7a' },
+        legend: { position: 'bottom' }
+      },
+      scales: { x: { min: 0, max: 5 } }
+    }
+  };
+  return `https://quickchart.io/chart?width=900&height=600&backgroundColor=white&c=${encodeURIComponent(JSON.stringify(config))}`;
+}
+
+function getScoreColor(score) {
+  if (score >= 85) return '#10b981';
+  if (score >= 70) return '#0b63ce';
+  if (score >= 55) return '#d97706';
+  return '#dc2626';
+}
+
+function consolidateComments(evaluations) {
+  return {
+    strengths: evaluations.map(e => e.strengths).filter(s => s).slice(0, 10),
+    improvements: evaluations.map(e => e.improvements).filter(s => s).slice(0, 10),
+    impacts: evaluations.map(e => e.impact).filter(s => s).slice(0, 10)
+  };
+}
+
+function buildReportHTML(leader, scores, style, charts, comments, evaluatorCount) {
+  const date = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'dd/MM/yyyy');
+  const findings = generateFindings(scores);
+  const pdiActions = generatePDI(scores);
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; color: #0f172a; line-height: 1.6; }
+.page { width: 210mm; min-height: 297mm; padding: 20mm; page-break-after: always; position: relative; }
+.page:last-child { page-break-after: auto; }
+.cover { background: linear-gradient(135deg, #0b4aa2, #062b62); color: #fff; }
+.cover-inner { padding: 60mm 20mm 20mm; text-align: center; }
+.cover-badge { display: inline-block; background: rgba(56,189,248,0.25); border: 2px solid rgba(56,189,248,0.5); color: #38bdf8; padding: 8px 22px; border-radius: 999px; font-size: 13px; font-weight: bold; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 30px; }
+.cover h1 { font-size: 48px; font-weight: 900; margin-bottom: 14px; line-height: 1.1; }
+.cover h2 { font-size: 32px; color: #38bdf8; margin: 30px 0 20px; }
+.cover-info { font-size: 18px; opacity: 0.9; margin: 8px 0; }
+.cover-stats { display: flex; justify-content: center; gap: 30px; margin-top: 50px; }
+.cover-stat { background: rgba(255,255,255,0.1); padding: 18px 24px; border-radius: 12px; min-width: 120px; }
+.cover-stat .num { font-size: 32px; font-weight: 900; }
+.cover-stat .label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+.section-title { font-size: 28px; color: #063b7a; border-bottom: 4px solid #0b63ce; padding-bottom: 10px; margin-bottom: 20px; font-weight: 900; }
+.section-subtitle { font-size: 16px; color: #475569; margin-bottom: 16px; }
+.chart-img { width: 100%; max-width: 170mm; margin: 16px auto; display: block; }
+.insight-box { background: #f4f9ff; border-left: 6px solid #0b63ce; padding: 16px 20px; margin: 14px 0; border-radius: 8px; }
+.insight-box h3 { color: #063b7a; font-size: 16px; margin-bottom: 8px; }
+.score-card { background: linear-gradient(135deg, #0b63ce, #084aa0); color: #fff; padding: 24px; border-radius: 16px; text-align: center; margin: 14px 0; }
+.score-card .score-num { font-size: 64px; font-weight: 900; }
+.score-card .style { font-size: 22px; font-weight: bold; margin-top: 12px; color: #38bdf8; }
+.findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.finding-card { padding: 16px; border-radius: 10px; }
+.finding-card.strength { background: #d1fae5; border-left: 5px solid #10b981; }
+.finding-card.gap { background: #fef3c7; border-left: 5px solid #d97706; }
+.pdi-action { background: #fff; border: 2px solid #d5e6fb; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+.pdi-action h4 { color: #063b7a; font-size: 16px; margin-bottom: 8px; }
+.action-num { background: #0b63ce; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: inline-block; text-align: center; line-height: 30px; font-weight: 900; margin-right: 8px; }
+.comment-list { background: #f8fafc; border-radius: 10px; padding: 16px; margin-top: 12px; }
+.comment-item { background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #0b63ce; font-size: 13px; }
+.footer-page { position: absolute; bottom: 10mm; left: 20mm; right: 20mm; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e6eefc; padding-top: 8px; }
+</style></head><body>
+
+<div class="page cover">
+  <div class="cover-inner">
+    <span class="cover-badge">Relatório Executivo</span>
+    <h1>✝️ Discipulado<br>360°</h1>
+    <h2>${escapeHtml(leader.name)}</h2>
+    <p class="cover-info">${escapeHtml(leader.position)}</p>
+    <p class="cover-info">${escapeHtml(leader.company)}</p>
+    <p class="cover-info" style="font-size:14px;">Emitido em ${date}</p>
+    <div class="cover-stats">
+      <div class="cover-stat"><div class="num">${scores.overall}</div><div class="label">Score</div></div>
+      <div class="cover-stat"><div class="num">${evaluatorCount}</div><div class="label">Avaliadores</div></div>
+      <div class="cover-stat"><div class="num">8</div><div class="label">Competências</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">📊 Score Executivo</h2>
+  <p class="section-subtitle">Sua nota geral baseada em ${evaluatorCount} avaliadores.</p>
+  <img src="${charts.gauge}" class="chart-img"/>
+  <div class="score-card">
+    <div class="score-num">${scores.overall}/100</div>
+    <div style="font-size:13px; opacity:0.9;">SCORE GERAL DE LIDERANÇA</div>
+    <div class="style">${style}</div>
+  </div>
+  <div class="insight-box">
+    <h3>💡 Interpretação</h3>
+    <p>${getScoreInterpretation(scores.overall)}</p>
+  </div>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 2</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">🎯 Mapa 360° de Competências</h2>
+  <p class="section-subtitle">Sua autopercepção (azul) vs percepção dos avaliadores (verde).</p>
+  <img src="${charts.radar}" class="chart-img"/>
+  <div class="insight-box">
+    <h3>🔍 Como ler</h3>
+    <p><strong>Você maior que os outros:</strong> potenciais pontos cegos.<br>
+    <strong>Outros maiores que você:</strong> forças não percebidas.<br>
+    <strong>Alinhados:</strong> percepção consistente.</p>
+  </div>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 3</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">📈 Comparativo por Vínculo</h2>
+  <img src="${charts.bar}" class="chart-img"/>
+  <div class="insight-box">
+    <h3>💡 Insights</h3>
+    <p>Diferenças entre vínculos revelam como você se posiciona com diferentes níveis hierárquicos.</p>
+  </div>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 4</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">📋 Detalhamento por Competência</h2>
+  <img src="${charts.competencies}" class="chart-img"/>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 5</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">🌟 Forças & Pontos Cegos</h2>
+  <div class="findings-grid">
+    <div class="finding-card strength">
+      <h4>✅ Maior Força</h4>
+      <p><strong>${findings.topStrength.name}</strong></p>
+      <p>Score: ${findings.topStrength.score.toFixed(2)}/5</p>
+    </div>
+    <div class="finding-card gap">
+      <h4>⚠️ Maior Oportunidade</h4>
+      <p><strong>${findings.topGap.name}</strong></p>
+      <p>Score: ${findings.topGap.score.toFixed(2)}/5</p>
+    </div>
+    <div class="finding-card strength">
+      <h4>💎 Ponto Cego Positivo</h4>
+      <p>${findings.blindSpotPositive ? findings.blindSpotPositive.name : 'Nenhum identificado'}</p>
+    </div>
+    <div class="finding-card gap">
+      <h4>👁️ Ponto Cego de Atenção</h4>
+      <p>${findings.blindSpotNegative ? findings.blindSpotNegative.name : 'Nenhum identificado'}</p>
+    </div>
+  </div>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 6</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">🚀 PDI - Próximos 90 dias</h2>
+  ${pdiActions.map((a, i) => `
+    <div class="pdi-action">
+      <h4><span class="action-num">${i+1}</span>${escapeHtml(a.title)}</h4>
+      <p>${escapeHtml(a.description)}</p>
+    </div>
+  `).join('')}
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 7</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">💬 Comentários Consolidados</h2>
+  <h3 style="color:#10b981; margin:14px 0 8px;">🌟 Forças</h3>
+  <div class="comment-list">
+    ${comments.strengths.map(c => `<div class="comment-item">${escapeHtml(c)}</div>`).join('') || '<p>Sem comentários.</p>'}
+  </div>
+  <h3 style="color:#d97706; margin:18px 0 8px;">🎯 Áreas para desenvolver</h3>
+  <div class="comment-list">
+    ${comments.improvements.map(c => `<div class="comment-item">${escapeHtml(c)}</div>`).join('') || '<p>Sem comentários.</p>'}
+  </div>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Página 8</div>
+</div>
+
+<div class="page">
+  <h2 class="section-title">✨ Impacto Percebido</h2>
+  <div class="comment-list">
+    ${comments.impacts.map(c => `<div class="comment-item">${escapeHtml(c)}</div>`).join('') || '<p>Sem comentários.</p>'}
+  </div>
+  <div class="insight-box" style="margin-top:30px;">
+    <h3>🙏 Mensagem Final</h3>
+    <p>"E todos nós, com o rosto desvendado, contemplando, como por espelho, a glória do Senhor, somos transformados, de glória em glória, na sua própria imagem." <strong>— 2 Coríntios 3:18</strong></p>
+    <p style="margin-top:10px;">Este relatório é um <strong>presente de Deus</strong>. Use-o com humildade e coragem. A jornada do discipulado é contínua — e você acabou de dar um passo decisivo.</p>
+  </div>
+  <div style="text-align:center; margin-top:40px; padding-top:20px; border-top:2px solid #e6eefc;">
+    <p style="font-weight:bold; color:#063b7a;">Pr. Roger</p>
+    <p style="font-size:13px; color:#64748b;">${CONFIG.COMPANY_NAME}</p>
+    <p style="font-size:11px; color:#64748b;">${CONFIG.ADMIN_EMAIL}</p>
+  </div>
+  <div class="footer-page">${CONFIG.COMPANY_NAME} • Código: ${leader.code}</div>
+</div>
+
+</body></html>`;
+}
+
+function getScoreInterpretation(score) {
+  if (score >= 85) return 'Você é percebido como uma liderança cristã exemplar. Foque em sustentar a excelência e desenvolver outros líderes em Cristo.';
+  if (score >= 70) return 'Você é uma liderança madura. Há espaço para refinamento em áreas específicas que podem te levar para o próximo nível ministerial.';
+  if (score >= 55) return 'Você está em pleno desenvolvimento. O caminho está claro, e algumas competências precisam de atenção focada na oração e prática.';
+  if (score >= 40) return 'Você está construindo as bases da sua liderança cristã. Momento valioso para investir intencionalmente no discipulado.';
+  return 'Você está no início da jornada. Cada passo conta, e este relatório é seu mapa para crescer em Cristo.';
+}
+
+function generateFindings(scores) {
+  const compsWithScores = COMPETENCIES.map((c, i) => ({
+    name: c.name,
+    selfScore: scores.self[i],
+    othersScore: scores.others[i],
+    gap: scores.others[i] - scores.self[i]
+  }));
+
+  const topStrength = [...compsWithScores].sort((a,b) => b.othersScore - a.othersScore)[0];
+  const topGap = [...compsWithScores].sort((a,b) => a.othersScore - b.othersScore)[0];
+  const blindPositive = [...compsWithScores].sort((a,b) => b.gap - a.gap)[0];
+  const blindNegative = [...compsWithScores].sort((a,b) => a.gap - b.gap)[0];
+
+  return {
+    topStrength: { name: topStrength.name, score: topStrength.othersScore },
+    topGap: { name: topGap.name, score: topGap.othersScore },
+    blindSpotPositive: blindPositive.gap > 0.5 ? blindPositive : null,
+    blindSpotNegative: blindNegative.gap < -0.5 ? blindNegative : null
+  };
+}
+
+function generatePDI(scores) {
+  const compsWithScores = COMPETENCIES.map((c, i) => ({
+    name: c.name,
+    score: scores.others[i]
+  })).sort((a, b) => a.score - b.score).slice(0, 3);
+
+  const actionsByComp = {
+    'Vida Espiritual': { title: 'Disciplinas Espirituais Diárias', description: 'Reserve 30 minutos diários para oração, leitura bíblica e meditação. Use um diário espiritual para registrar aprendizados.' },
+    'Inteligência Emocional': { title: 'Pausa e Reflexão', description: 'Antes de reagir em tensão, pratique pausa de 10 segundos com oração silenciosa. Faça journaling diário das emoções à luz da Palavra.' },
+    'Pregação e Ensino': { title: 'Estudo Sistemático Semanal', description: 'Reserve 2 horas semanais para estudo profundo da Palavra. Pratique pregação para uma pessoa de confiança e peça feedback.' },
+    'Cuidado Pastoral': { title: 'Visitação e Acompanhamento', description: 'Agende 1 visita pastoral por semana. Crie sistema de acompanhamento dos membros com necessidades específicas.' },
+    'Liderança Servidora': { title: 'Servir Antes de Liderar', description: 'A cada decisão, pergunte: "Como sirvo melhor minha equipe aqui?". Identifique 1 ato de serviço prático por semana.' },
+    'Discipulado': { title: 'Discipular Intencionalmente', description: 'Escolha 2-3 pessoas para discipular pessoalmente. Encontros semanais de 1 hora com plano de crescimento estruturado.' },
+    'Comunhão e Equipe': { title: 'Construir Vínculos Genuínos', description: 'Crie momento semanal de oração e comunhão com a equipe. Compartilhe vulnerabilidades e celebre vitórias coletivas.' },
+    'Missão de Reino': { title: 'Foco no Propósito Maior', description: 'Conecte cada decisão à missão do Reino. Estabeleça metas missionárias trimestrais com a equipe.' }
+  };
+
+  return compsWithScores.map(c => actionsByComp[c.name] || { title: `Desenvolver: ${c.name}`, description: 'Crie plano de 90 dias com 3 ações práticas baseadas na Palavra.' });
+}
+
+function buildReportEmailHTML(leader, scores, style, evaluatorCount) {
+  return `
+    <div style="font-family: Arial; max-width:600px; margin:0 auto;">
+      <div style="background: linear-gradient(135deg,#0b4aa2,#062b62); color:#fff; padding:36px; text-align:center; border-radius:14px 14px 0 0;">
+        <div style="font-size:60px;">✝️</div>
+        <h1 style="margin:10px 0 0; font-size:28px;">Seu Relatório Está Pronto!</h1>
+      </div>
+      <div style="padding:28px; background:#fff;">
+        <p>Olá <strong>${leader.name}</strong>,</p>
+        <p>Em anexo, seu <strong>Relatório Executivo de Discipulado 360°</strong> completo.</p>
+        <div style="background: linear-gradient(135deg,#0b63ce,#084aa0); color:#fff; padding:24px; border-radius:14px; text-align:center; margin:24px 0;">
+          <div style="font-size:48px; font-weight:900;">${scores.overall}/100</div>
+          <div style="font-size:13px; letter-spacing:0.15em; text-transform:uppercase; opacity:0.9; margin-top:6px;">Score Executivo</div>
+          <div style="font-size:20px; font-weight:bold; margin-top:10px; color:#38bdf8;">${style}</div>
+        </div>
+        <div style="background:#f0fdf4; border-left:5px solid #10b981; padding:16px; border-radius:8px; margin:20px 0;">
+          <p style="margin:0;"><strong>📊 ${evaluatorCount} avaliadores</strong> contribuíram para este relatório.</p>
+        </div>
+        <p>Que Deus continue te abençoando nessa jornada! 🙏<br><strong>Pr. Roger</strong><br>${CONFIG.COMPANY_NAME}</p>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+// ============ FUNÇÕES DE SETUP E TESTE ============
+
+/**
+ * 🛠️ EXECUTE ESTA FUNÇÃO UMA VEZ para criar a estrutura
+ */
+function setupSpreadsheet() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+
+  const sheets = {
+    'Leaders': ['code', 'timestamp', 'name', 'email', 'whatsapp', 'company', 'position', 'level', 'teamSize', 'experience', 'status', 'evaluatorCount', 'selfStrengths', 'selfImprovements', 'selfImpact', 'pin'],
+    'Evaluations': ['leaderCode', 'anonId', 'timestamp', 'relation', 'timeKnowing', 'responses', 'strengths', 'improvements', 'impact'],
+    'Milestones': ['leaderCode', 'timestamp', 'count', 'type'],
+    'SelfAssessment': ['leaderCode', 'timestamp', 'responses']
+  };
+
+  let report = '✅ Setup executado:\n\n';
+
+  Object.keys(sheets).forEach(name => {
+    let sheet = ss.getSheetByName(name);
+    let action = '';
+
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+      action = '🆕 CRIADA';
+    } else {
+      action = '♻️ JÁ EXISTIA (cabeçalho atualizado)';
+    }
+
+    sheet.getRange(1, 1, 1, sheets[name].length).setValues([sheets[name]]);
+    sheet.getRange(1, 1, 1, sheets[name].length)
+      .setBackground('#0b63ce')
+      .setFontColor('#ffffff')
+      .setFontWeight('bold');
+    sheet.setFrozenRows(1);
+
+    report += `${action}: "${name}"\n`;
+  });
+
+  Logger.log(report);
+  try {
+    SpreadsheetApp.getUi().alert(report);
+  } catch (e) {
+    Logger.log('UI não disponível.');
+  }
+}
+
+function testConnection() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+    const sheets = ss.getSheets().map(s => s.getName());
+    Logger.log('✅ Planilha conectada: ' + ss.getName());
+    Logger.log('📑 Abas existentes: ' + sheets.join(', '));
+    return { ok: true, name: ss.getName(), sheets: sheets };
+  } catch (e) {
+    Logger.log('❌ Erro: ' + e.toString());
+    return { ok: false, error: e.toString() };
+  }
+}
+
+function listAllLeaders() {
+  const sheet = getSheet('Leaders');
+  const data = sheet.getDataRange().getValues();
+  Logger.log(`Total de líderes: ${data.length - 1}`);
+  for (let i = 1; i < data.length; i++) {
+    Logger.log(`${i}. ${data[i][0]} - ${data[i][2]} (status: ${data[i][10]}, count: ${data[i][11]})`);
+  }
+}
